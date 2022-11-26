@@ -2,7 +2,6 @@ select icu.*, pat.anchor_age,pat.anchor_year_group,sf.SOFA,rrt.rrt, weight.weigh
 charlson.charlson_comorbidity_index, (pressor.stay_id = icu.stay_id) as pressor,ad.discharge_location as discharge_location, pat.dod,
 InvasiveVent.InvasiveVent_hr,Oxygen.Oxygen_hr,HighFlow.HighFlow_hr,NonInvasiveVent.NonInvasiveVent_hr,Trach.Trach_hr,
 ABS(TIMESTAMP_DIFF(pat.dod,icu.icu_outtime,DAY)) as dod_icuout_offset,
-icd.icd_codes, icd.
 
 from physionet-data.mimiciv_derived.icustay_detail as icu 
 inner join physionet-data.mimiciv_derived.sepsis3 as s3

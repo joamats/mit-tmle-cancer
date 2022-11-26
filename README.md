@@ -3,6 +3,26 @@
 
 (to be organized)
 
+**Code to get sepsis patients**
+
+MIMIC-IV
+
+```py
+
+python3 data\get_data.py --sql_query_path "data\sql\mimic_table.sql" --destination_path "data\sepsis_MIMIC\sepsis_all.csv"
+
+```
+
+eICU
+
+```py
+
+python3 data\get_data.py --sql_query_path "data\sql\eicu_table.sql" --destination_path "data\sepsis_eICU\sepsis_all.csv"
+
+```
+
+
+
 **Code to get sepsis patients' ICD-9 and ICD-10 diagnoses codes**
 
 MIMIC-IV
