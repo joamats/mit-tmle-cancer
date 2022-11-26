@@ -15,3 +15,10 @@ def parse_args():
 
     return parser.parse_args()
 
+if __name__ == '__main__':
+
+    args = parse_args()
+
+    df = pd.read_csv(args.original_file)
+    df = df[df.icd_10.str.contains("C")]
+    df.to_csv(args.result_file)

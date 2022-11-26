@@ -1,6 +1,8 @@
 import argparse
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
+tqdm.pandas()
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -14,6 +16,21 @@ def parse_args():
                         help="Insert your target path for the ICD 10 converted file ")
 
     return parser.parse_args()
+
+def icd9_to_icd10(row, mapping):
+
+    if row.icd_version == 9:
+        try:
+            return mapping[row.icd_code]
+        except:
+            return np.nan
+
+    elif row.icd_version == 10:
+        return row.icd_code
+    
+    else: 
+        return np.nan
+
 
 if __name__ == '__main__':
 
@@ -29,17 +46,10 @@ if __name__ == '__main__':
     i = 0
     idxs_to_drop = list()
 
-    for index, row in tqdm(df.iterrows(), total=n):
+    df['icd_10'] = df.progress_apply(lambda row: icd9_to_icd10(row, mapping), axis=1)
 
-        if row.icd_version == 9:
-            try:
-                df.iloc[index].icd_code = mapping[row.icd_code]
-            except:
-                idxs_to_drop.append(index)
-
-    df.drop(idxs_to_drop, inplace=True)      
+    df.dropna(inplace=True)      
                 
-    print(f"{len(idxs_to_drop) / n * 100:.2f}% of codes failed!")
     print(f"Inital length: {n}\nFinal Length: {len(df)}")
 
     df.to_csv(args.result_file)
