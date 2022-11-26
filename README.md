@@ -48,7 +48,7 @@ MIMIC
 
 ```py
 
-python3 data\icd_codes\cancer_patients.py --original_file "data\dx_MIMIC\icd_10_only.csv" --result_file "data\dx_MIMIC\sepsis_cancer_only.csv"
+python3 data\icd_codes\cancer_patients.py --original_file "data\dx_MIMIC\icd_10_only.csv" --result_file "data\dx_MIMIC\sepsis_cancer_only.csv" --dataset "MIMIC"
 
 ```
 
@@ -56,6 +56,6 @@ eICU
 
 ```py
 
-python3 data\icd_codes\cancer_patients.py --original_file "data\dx_eICU\icd_10_only.csv" --result_file "data\dx_eICU\sepsis_cancer_only.csv"
+python3 data\icd_codes\cancer_patients.py --original_file "data\dx_eICU\icd_10_only.csv" --result_file "data\dx_eICU\sepsis_cancer_only.csv" --datatset "eICU"
 
 ```
