@@ -62,28 +62,12 @@ left join (SELECT stay_id, sum(TIMESTAMP_DIFF(endtime,starttime,HOUR)) as Trach_
 FROM `physionet-data.mimiciv_derived.ventilation` where ventilation_status = "Trach" group by stay_id) as Trach
 on Trach.stay_id = icu.stay_id
 
--- only include cancer patients
-inner join (
-  SELECT subject_id, STRING_AGG(icd_code, ",") AS icd_codes
-  FROM `physionet-data.mimiciv_hosp.diagnoses_icd`
-  WHERE icd_code LIKE "C%"
-  AND icd_code NOT LIKE "C76%"
-  AND icd_code NOT LIKE "C77%"
-  AND icd_code NOT LIKE "C78%"
-  AND icd_code NOT LIKE "C79%"
-  AND icd_code NOT LIKE "C80%"
-  AND icd_code NOT LIKE "C97%"
-  AND icd_code NOT LIKE "C98%"
-  AND icd_code NOT LIKE "C099%"
-  GROUP BY subject_id) AS icd
-on icd.subject_id = icu.subject_id
-
 where (icu.first_icu_stay is true)
 
 and (discharge_location is not null or abs(timestamp_diff(pat.dod,icu.icu_outtime,DAY)) < 4)
-and (icu.race != "UNKNOWN")
-and (icu.race != "UNABLE TO OBTAIN")
-and (icu.race != "PATIENT DECLINED TO ANSWER")
-and (icu.race != "OTHER")
+--and (icu.race != "UNKNOWN")
+--and (icu.race != "UNABLE TO OBTAIN")
+--and (icu.race != "PATIENT DECLINED TO ANSWER")
+--and (icu.race != "OTHER")
 
 order by icu.hadm_id
