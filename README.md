@@ -87,7 +87,7 @@ MIMIC
 
 ```py
 
-python3 data\combine_data.py --dataset "MIMIC" --result_file "data\MIMIC_table.csv"
+python3 data\combine_data.py --dataset "MIMIC" --result_file "data\table_MIMIC.csv"
 
 ```
 
@@ -95,6 +95,6 @@ eICU
 
 ```py
 
-python3 data\combine_data.py --dataset "eICU" --result_file "data\eICU_table.csv"
+python3 data\combine_data.py --dataset "eICU" --result_file "data\table_eICU.csv"
 
 ```

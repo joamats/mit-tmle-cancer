@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # Encode as other if no cancer types has been detected, within our list
     df['other'] = ~df[unique_cancer_types].any(axis=1)
 
-    print(len(df))
+    print(f"Before groupping by patient, N = {len(df)}")
 
     # Group by patient
     if args.dataset == "MIMIC":
@@ -52,6 +52,14 @@ if __name__ == '__main__':
     elif args.dataset == "eICU":
         df = df.groupby("patientunitstayid").sum()
 
-    print(len(df))
+    # Convert these sums into 0 or 1 (anything >= 1)
+    for index, row in cancer_map.iterrows():
+
+        df[row.cancer_type] = df[row.cancer_type].apply(lambda x: 1 if x >= 1 else 0)
+    
+    # And same for 'other'
+    df.other = df.other.apply(lambda x: 1 if x >= 1 else 0)
+    
+    print(f"After groupping by patient, N = {len(df)}")
 
     df.to_csv(args.result_file)
