@@ -50,7 +50,7 @@ if __name__ == '__main__':
         df = df.groupby("subject_id").sum()
 
     elif args.dataset == "eICU":
-        df = df.groupby("patientUnitStayID").sum()
+        df = df.groupby("patientunitstayid").sum()
 
     print(len(df))
 

@@ -84,7 +84,7 @@ if __name__ == '__main__':
     
     elif args.dataset == "eICU":
 
-        df = df[['patientUnitStayID','ICD9Code']]
+        df = df[['patientunitstayid','ICD9Code']]
         df['icd_10'] = df.progress_apply(lambda row: eicu_conversion(row, mapping), axis=1)
 
 

@@ -182,5 +182,5 @@ AS icustay_detail
 ON icustay_detail.patientunitstayid = yug.patientunitstayid
 
 
-WHERE yug.ethnicity != "Other/Unknown"
-AND icustay_detail.unitvisitnumber = 1
+--WHERE yug.ethnicity != "Other/Unknown"
+--AND icustay_detail.unitvisitnumber = 1

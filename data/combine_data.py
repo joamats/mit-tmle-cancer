@@ -4,8 +4,14 @@ import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sql_query_path", help="Insert your SQL query's path")
-    parser.add_argument("--destination_path", help="Insert your pulled data's destination path")
+    
+    parser.add_argument("--result_file",
+                        default="data\eICU_table.csv",
+                        help="Insert your target path for joint dataset file")
+
+    parser.add_argument("--dataset",
+                    default="eICU",
+                    help="Insert the dataset to work with")
 
     return parser.parse_args()
 
@@ -53,7 +59,7 @@ def cat_pressor(pressor):
         return np.NaN
 
 # Apply the functions and save the CSV
-def combine_treatment_eICU(df, destination_path):
+def combine_treatment_eICU(df):
 
     df['RRT_final'] = df.apply(lambda rrt: cat_rrt(rrt), axis=1)
     df['VENT_final'] = df.apply(lambda vent: cat_vent(vent), axis=1)
@@ -62,45 +68,33 @@ def combine_treatment_eICU(df, destination_path):
     return df
 
 
-# Run Query to get a DataFrame from BigQuery
-def run_query(sql_query_path):
-
-    # Access data using Google BigQuery.
-    import os
-    from dotenv import load_dotenv
-
-    # Load env file 
-    load_dotenv()
-
-    # Get GCP's secrets
-    KEYS_FILE = os.getenv("KEYS_FILE")
-    PROJECT_ID = os.getenv("PROJECT_ID")
-
-    # Set environment variables
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = KEYS_FILE
-
-    # Establish connection with BigQuery
-    from google.cloud import bigquery
-    BigQuery_client = bigquery.Client()
-
-    # Read query
-    with open(sql_query_path, 'r') as fd:
-        query = fd.read()
-
-    # Replace the project id by the coder's project id in GCP
-    my_query = query.replace("physionet-data", PROJECT_ID).replace("db_name", PROJECT_ID, -1)
-
-    # Make request to BigQuery with our query
-    df = BigQuery_client.query(my_query).to_dataframe()
-
-    return df
-
 if __name__ == '__main__':
 
     args = parse_args()
-    df = run_query(sql_query_path = args.sql_query_path)
 
-    if "data/eICU_data.csv" in args.destination_path:
-        df = combine_treatment_eICU(df, args.destination_path)
-    
-    df.to_csv(args.destination_path)
+    if args.dataset == "MIMIC":
+        df_sepsis = pd.read_csv("data\sepsis_MIMIC\sepsis_all.csv")
+        df_cancer = pd.read_csv("data\dx_MIMIC\sepsis_cancer_only.csv")
+
+        key = "subject_id"
+
+    elif args.dataset == "eICU":
+        df_sepsis = pd.read_csv("data\sepsis_eICU\sepsis_all.csv")
+        # Combine vent, rrt, vasopressor columns into one of each only
+        df_sepsis = combine_treatment_eICU(df_sepsis)
+        df_cancer = pd.read_csv("data\dx_eICU\sepsis_cancer_only.csv") 
+
+        key = "patientunitstayid"
+
+    # Get together
+    df_all = df_sepsis.set_index(key).join(df_cancer.set_index(key), how="inner", rsuffix="_")
+
+    # Remove unnamed columns
+    df_all = df_all.loc[:, ~df_all.columns.str.contains('^Unnamed')]
+
+    print(f"Cancer patients: {len(df_cancer)}")
+    print(f"Sepsis patients: {len(df_sepsis)}")
+    print(f"Final patients: {len(df_all)}")
+
+    # Save DataFrame
+    df_all.to_csv(args.result_file)
