@@ -1,6 +1,7 @@
 import argparse
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -35,13 +36,14 @@ if __name__ == '__main__':
     # Go over each ICD code for cancer type, make true if our code matches
     for index, row in tqdm(cancer_map.iterrows(), total=len(cancer_map)):
 
-        df[row.cancer_type] = df.icd_10.apply(lambda x: row.icd_10 in x)
+        df[row.cancer_type] = df.icd_10.apply(lambda x: 1 if row.icd_10 in x else np.nan)
 
     # Get unique cancer types names
     unique_cancer_types = cancer_map.cancer_type.unique()
 
     # Encode as other if no cancer types has been detected, within our list
     df['other'] = ~df[unique_cancer_types].any(axis=1)
+    df.other = df.other.apply(lambda x: np.nan if x == 0 else 1)
 
     print(f"Before groupping by patient, N = {len(df)}")
 
@@ -55,10 +57,10 @@ if __name__ == '__main__':
     # Convert these sums into 0 or 1 (anything >= 1)
     for index, row in cancer_map.iterrows():
 
-        df[row.cancer_type] = df[row.cancer_type].apply(lambda x: 1 if x >= 1 else 0)
+        df[row.cancer_type] = df[row.cancer_type].apply(lambda x: 1 if x >= 1 else np.nan)
     
     # And same for 'other'
-    df.other = df.other.apply(lambda x: 1 if x >= 1 else 0)
+    df.other = df.other.apply(lambda x: 1 if x >= 1 else np.nan)
     
     print(f"After groupping by patient, N = {len(df)}")
 

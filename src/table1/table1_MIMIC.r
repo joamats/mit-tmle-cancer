@@ -76,6 +76,8 @@ final_df$los_hosp[final_df$los_hosp < 0] <- 0 # clean data to have minimum of 0 
 
 # Cancer Types
 final_df$cancer <- final_df$other
+final_df$cancer[final_df$other >= 1] <- "Other (only)"
+final_df$cancer[final_df$metastasized >= 1] <- "Metastasized"
 final_df$cancer[final_df$breast >= 1] <- "Breast"
 final_df$cancer[final_df$prostate >= 1] <- "Prostate"
 final_df$cancer[final_df$lung_bronchus >= 1] <- "Lung (including bronchus)"
@@ -87,8 +89,6 @@ final_df$cancer[final_df$leukemia >= 1] <- "Leukemia"
 final_df$cancer[final_df$pancreatic >= 1] <- "Pancreatic"
 final_df$cancer[final_df$thyroid >= 1] <- "Thyroid"
 final_df$cancer[final_df$liver_bd >= 1] <- "Liver and intrahepatic BD"
-final_df$cancer[final_df$metastasized >= 1] <- "Metastasized"
-final_df$cancer[final_df$other >= 1] <- "Other"
 
 
 # Get data into factor format
@@ -118,7 +118,7 @@ final_df$cancer <- factor(final_df$cancer, levels = c("Breast",
                                                       "Thyroid",
                                                       "Liver and intrahepatic BD",
                                                       "Metastasized",
-                                                      "Other"
+                                                      "Other (only)"
 ))
 
 
@@ -164,7 +164,7 @@ render.strat <- function (label, n, ...) {
 # Create Table1 Object
 tbl1 <- table1(~ dis_expiration + vent_req + rrt_new + pressor_lab +
                age_new + admission_age + gender + SOFA_new + SOFA + 
-               charlson_new + charlson_comorbidity_index + los_hosp + cancer
+               charlson_new + charlson_comorbidity_index + los_hosp + cancer + race
                | race_new,
                data=final_df,
                render.missing=NULL,
