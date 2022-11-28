@@ -151,6 +151,9 @@ label(final_df$pressor_lab) <- "Vasopressor(s)"
 
 label(final_df$dis_expiration) <- "In-hospital Mortality"
 
+label(final_df$race) <- "Ethnicity"
+
+
 render.categorical <- function(x, ...) {
   c("", sapply(stats.apply.rounding(stats.default(x)), function(y) with(y,
   sprintf("%s (%s%%)", prettyNum(FREQ, big.mark=","), PCT))))
