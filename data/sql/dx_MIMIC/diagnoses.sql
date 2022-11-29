@@ -8,13 +8,16 @@ AND s3.sepsis3 IS TRUE
 LEFT JOIN physionet-data.mimiciv_hosp.patients AS pat
 ON icu.subject_id = pat.subject_id
 
+LEFT JOIN physionet-data.mimiciv_hosp.admissions as ad
+ON icu.hadm_id = ad.hadm_id
+
 INNER JOIN (
   SELECT subject_id, icd_code, icd_version
   FROM `physionet-data.mimiciv_hosp.diagnoses_icd`
   )
 AS icd
 
-
 ON icd.subject_id = icu.subject_id
 
-where (icu.first_icu_stay is true and icu.first_hosp_stay is true)
+WHERE (icu.first_icu_stay IS true AND icu.first_hosp_stay IS true)
+AND (ad.discharge_location IS NOT NULL OR abs(timestamp_diff(pat.dod,icu.icu_outtime,DAY)) < 4)
