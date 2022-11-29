@@ -62,9 +62,8 @@ FROM `physionet-data.mimiciv_derived.ventilation` where ventilation_status = "Tr
 on Trach.stay_id = icu.stay_id
 
 -- this variable is not okay! There are patients with multiple stays where the flag is always true
---where (icu.first_icu_stay is true)
-
-where (discharge_location is not null or abs(timestamp_diff(pat.dod,icu.icu_outtime,DAY)) < 4)
+where (icu.first_icu_stay is true and icu.first_hosp_stay is true)
+and (discharge_location is not null or abs(timestamp_diff(pat.dod,icu.icu_outtime,DAY)) < 4)
 --and (icu.race != "UNKNOWN")
 --and (icu.race != "UNABLE TO OBTAIN")
 --and (icu.race != "PATIENT DECLINED TO ANSWER")

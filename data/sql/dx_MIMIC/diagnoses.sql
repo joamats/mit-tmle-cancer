@@ -14,4 +14,7 @@ INNER JOIN (
   )
 AS icd
 
+
 ON icd.subject_id = icu.subject_id
+
+where (icu.first_icu_stay is true and icu.first_hosp_stay is true)

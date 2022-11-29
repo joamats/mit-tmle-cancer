@@ -78,20 +78,16 @@ final_df$los_hosp = (final_df$hospitaldischargeoffset/1440)
 final_df$los_hosp[final_df$los_hosp < 0] <- 0 # clean data to have minimum of 0 days
 
 # Cancer Types
-final_df$cancer <- final_df$other
-final_df$cancer[final_df$other >= 1] <- "Other (only)"
-final_df$cancer[final_df$metastasized >= 1] <- "Metastasized"
-final_df$cancer[final_df$breast >= 1] <- "Breast"
-final_df$cancer[final_df$prostate >= 1] <- "Prostate"
-final_df$cancer[final_df$lung_bronchus >= 1] <- "Lung (including bronchus)"
-final_df$cancer[final_df$colon_retal >= 1] <- "Colon and Rectal (combined)"
-final_df$cancer[final_df$melanoma >= 1] <- "Melanoma"
-final_df$cancer[final_df$bladder >= 1] <- "Bladder"
-final_df$cancer[final_df$endometrial >= 1] <- "Endometrial"
-final_df$cancer[final_df$leukemia >= 1] <- "Leukemia"
-final_df$cancer[final_df$pancreatic >= 1] <- "Pancreatic"
-final_df$cancer[final_df$thyroid >= 1] <- "Thyroid"
-final_df$cancer[final_df$liver_bd >= 1] <- "Liver and intrahepatic BD"
+final_df$other[!is.na(final_df$other)] <- "Yes"
+final_df$breast[!is.na(final_df$breast)] <- "Yes"
+final_df$prostate[!is.na(final_df$prostate)] <- "Yes"
+final_df$lung_bronchus[!is.na(final_df$lung_bronchus)] <- "Yes"
+final_df$melanoma[!is.na(final_df$melanoma)] <- "Yes"
+final_df$bladder[!is.na(final_df$bladder)] <- "Yes"
+final_df$endometrial[!is.na(final_df$endometrial)] <- "Yes"
+final_df$pancreatic[!is.na(final_df$pancreatic)] <- "Yes"
+final_df$thyroid[!is.na(final_df$thyroid)] <- "Yes"
+final_df$liver_bd[!is.na(final_df$liver_bd)] <- "Yes"
 
 
 # Get data into factor format
@@ -109,20 +105,6 @@ final_df$dis_expiration <- factor(final_df$dis_expiration)
 
 final_df$SOFA_new <- factor(final_df$SOFA_new, levels = c('0 - 5', '6 - 10','11 - 15', '16 and above' ))
 final_df$charlson_new <- factor(final_df$charlson_new, levels = c('0 - 5', '6 - 10','11 - 15', '16 and above'))
-final_df$cancer <- factor(final_df$cancer, levels = c("Breast", 
-                                                      "Prostate",
-                                                      "Lung (including bronchus)",
-                                                      "Colon and Rectal (combined)",
-                                                      "Melanoma",
-                                                      "Bladder",
-                                                      "Endometrial",
-                                                      "Leukemia",
-                                                      "Pancreatic",
-                                                      "Thyroid",
-                                                      "Liver and intrahepatic BD",
-                                                      "Metastasized",
-                                                      "Other (only)"
-))
 
 
 
@@ -138,8 +120,6 @@ label(final_df$gender) <- "Sex"
 label(final_df$SOFA) <- "SOFA overall"
 label(final_df$SOFA_new) <- "SOFA"
 
-label(final_df$cancer) <- "Active Cancer by Type"
-
 label(final_df$los_hosp) <- "Length of stay"
 units(final_df$los_hosp) <- "days"
 
@@ -153,6 +133,21 @@ label(final_df$rrt_new) <- "Renal Replacement Therapy"
 label(final_df$pressor_lab) <- "Vasopressor(s)"
 
 label(final_df$dis_expiration) <- "In-hospital Mortality"
+
+label(final_df$other) <- "Other"
+label(final_df$metastasized) <- "Metastasized"
+label(final_df$breast) <- "Breast"
+label(final_df$lung_bronchus) <- "Lung (including bronchus)"
+label(final_df$colon_retal) <- "Colon and Rectal (combined)"
+label(final_df$melanoma) <- "Melanoma"
+label(final_df$bladder) <- "Bladder"
+label(final_df$kidney) <- "Kidney"
+label(final_df$endometrial) <- "Endometrial"
+label(final_df$leukemia) <- "Leukemia"
+label(final_df$pancreatic) <- "Pancreatic"
+label(final_df$thyroid) <- "Thyroid"
+label(final_df$liver_bd) <- "Liver and intrahepatic BD"
+
 label(final_df$race) <- "Ethnicity"
 
 
@@ -169,7 +164,11 @@ render.strat <- function (label, n, ...) {
 # Create Table1 Object
 tbl1 <- table1(~ dis_expiration + vent_req + rrt_new + pressor_lab +
                age_new + age + gender + SOFA_new + SOFA + 
-               charlson_new + charlson_comorbidity_index + los_hosp + cancer + race
+               charlson_new + charlson_comorbidity_index + los_hosp +
+               other + metastasized + breast + prostate + lung_bronchus +
+               colon_retal + melanoma + bladder + kidney + nhl + endometrial +
+               leukemia + pancreatic + thyroid + liver_bd +
+               race
                | race_new,
                data=final_df,
                render.missing=NULL,
