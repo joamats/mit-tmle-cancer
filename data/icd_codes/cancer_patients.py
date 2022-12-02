@@ -33,15 +33,19 @@ if __name__ == '__main__':
     # Get the mapping ICD codes - cancer type
     cancer_map = pd.read_csv("data\icd_codes\cancer_types.csv")
 
+    # First let's create a column for each cancer
+    for index, row in cancer_map.iterrows():
+        df[row.cancer_type] = np.nan
+    
     # Go over each ICD code for cancer type, make true if our code matches
     for index, row in tqdm(cancer_map.iterrows(), total=len(cancer_map)):
 
-        df[row.cancer_type] = df.icd_10.apply(lambda x: 1 if row.icd_10 in x else np.nan)
+        df[row.cancer_type] = df.apply(lambda x: 1 if row.icd_10 in x.icd_10 else x[row.cancer_type], axis=1)
 
     # Get unique cancer types names
     unique_cancer_types = cancer_map.cancer_type.unique()
 
-    # Encode as other if no cancer types has been detected, within our list
+    # Encode as other if no cancer types have been detected, within our list
     df['other'] = ~df[unique_cancer_types].any(axis=1)
     df.other = df.other.apply(lambda x: np.nan if x == 0 else 1)
 
