@@ -4,24 +4,6 @@ import pandas as pd
 import numpy as np
 tqdm.pandas()
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--original_file",
-                        default="data\dx_eICU\icd_9_and_10.csv",
-                        help="Insert your original file with ICD 9 and 10 codes")
-
-    parser.add_argument("--result_file",
-                        default="data\dx_eICU\icd_10_only.csv",
-                        help="Insert your target path for the ICD 10 converted file")
-
-    parser.add_argument("--dataset",
-                        default="eICU",
-                        help="Insert the dataset to work with")
-
-    return parser.parse_args()
-
-
 # Conversion using MIMIC's format
 def mimic_conversion(row, mapping):
 
@@ -65,11 +47,9 @@ def eicu_conversion(row, mapping):
                 return np.nan
 
 
-if __name__ == '__main__':
+def icd_9_to_10(original_file, dataset):
 
-    args = parse_args()
-
-    df = pd.read_csv(args.original_file)
+    df = pd.read_csv(original_file)
 
     conversions = pd.read_csv("data\icd_codes\ICD10_Formatted.csv")[['ICD-9', 'ICD-10']]
 
@@ -78,11 +58,11 @@ if __name__ == '__main__':
     n = len(df)
     i = 0
 
-    if args.dataset == "MIMIC":
+    if dataset == "MIMIC":
 
         df['icd_10'] = df.progress_apply(lambda row: mimic_conversion(row, mapping), axis=1)
     
-    elif args.dataset == "eICU":
+    elif dataset == "eICU":
 
         df = df[['patientunitstayid','ICD9Code']]
         df['icd_10'] = df.progress_apply(lambda row: eicu_conversion(row, mapping), axis=1)
@@ -92,4 +72,4 @@ if __name__ == '__main__':
                 
     print(f"Inital length: {n}\nFinal Length: {len(df)}")
 
-    df.to_csv(args.result_file)
+    return df
