@@ -78,6 +78,9 @@ load_data <- function(cohort){
     print("Wrong path or file name.")
   }
 
+  # Replace all NAs with 0
+  data[is.na(data)] <- 0
+
   # Return just keeping columns of interest
   return(data[, c("gender_female", "race_white", "anchor_age",
                   "mech_vent", "rrt", "pressor",  
