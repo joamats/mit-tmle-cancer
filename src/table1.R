@@ -5,7 +5,7 @@ library(dplyr)
 library(flextable)
 library(magrittr)
 
-source("src/load_data/load_data.R")
+source("src/load_data.R")
 
 df <- read_csv('data/table_all.csv', show_col_types = FALSE)
 
@@ -45,20 +45,21 @@ df <- df %>% mutate(source = ifelse(source == "mimic", "MIMIC", "eICU"))
 
 
 # Cancer Types
-#df$other[!is.na(df$other)] <- "Yes"
-#df$metastasized[!is.na(df$metastasized)] <- "Yes"
-#df$breast[!is.na(df$breast)] <- "Yes"
-#df$prostate[!is.na(df$prostate)] <- "Yes"
-#df$lung_bronchus[!is.na(df$lung_bronchus)] <- "Yes"
-#df$colon_retal[!is.na(df$colon_retal)] <- "Yes"
-#df$melanoma[!is.na(df$melanoma)] <- "Yes"
-#df$bladder[!is.na(df$bladder)] <- "Yes"
-#df$kidney[!is.na(df$kidney)] <- "Yes"
-#df$endometrial[!is.na(df$endometrial)] <- "Yes"
-#df$leukemia[!is.na(df$leukemia)] <- "Yes"
-#df$pancreatic[!is.na(df$pancreatic)] <- "Yes"
-#df$thyroid[!is.na(df$thyroid)] <- "Yes"
-#df$liver_bd[!is.na(df$liver_bd)] <- "Yes"
+df$other[!is.na(df$other)] <- "Yes"
+df$metastasized[!is.na(df$metastasized)] <- "Yes"
+df$breast[!is.na(df$breast)] <- "Yes"
+df$prostate[!is.na(df$prostate)] <- "Yes"
+df$lung_bronchus[!is.na(df$lung_bronchus)] <- "Yes"
+df$colon_retal[!is.na(df$colon_retal)] <- "Yes"
+df$melanoma[!is.na(df$melanoma)] <- "Yes"
+df$bladder[!is.na(df$bladder)] <- "Yes"
+df$kidney[!is.na(df$kidney)] <- "Yes"
+df$nhl[!is.na(df$nhl)] <- "Yes"
+df$endometrial[!is.na(df$endometrial)] <- "Yes"
+df$leukemia[!is.na(df$leukemia)] <- "Yes"
+df$pancreatic[!is.na(df$pancreatic)] <- "Yes"
+df$thyroid[!is.na(df$thyroid)] <- "Yes"
+df$liver_bd[!is.na(df$liver_bd)] <- "Yes"
 
 # Get data into factor format
 df$gender_female <- factor(df$gender_female)
@@ -99,19 +100,21 @@ label(df$mortality) <- "In-hospital Mortality"
 
 label(df$has_cancer) <- "Active Cancer"
 
-#label(df$other) <- "Other"
-#label(df$metastasized) <- "Metastasized"
-#label(df$breast) <- "Breast"
-#label(df$lung_bronchus) <- "Lung (including bronchus)"
-#label(df$colon_retal) <- "Colon and Rectal (combined)"
-#label(df$melanoma) <- "Melanoma"
-#label(df$bladder) <- "Bladder"
-#label(df$kidney) <- "Kidney"
-#label(df$endometrial) <- "Endometrial"
-#label(df$leukemia) <- "Leukemia"
-#label(df$pancreatic) <- "Pancreatic"
-#label(df$thyroid) <- "Thyroid"
-#label(df$liver_bd) <- "Liver and intrahepatic BD"
+label(df$other) <- "Other"
+label(df$metastasized) <- "Metastasized"
+label(df$breast) <- "Breast"
+label(df$prostate) <- "Prostate"
+label(df$lung_bronchus) <- "Lung (including bronchus)"
+label(df$colon_retal) <- "Colon and Rectal (combined)"
+label(df$melanoma) <- "Melanoma"
+label(df$bladder) <- "Bladder"
+label(df$kidney) <- "Kidney"
+label(df$nhl) <- "NHL"
+label(df$endometrial) <- "Endometrial"
+label(df$leukemia) <- "Leukemia"
+label(df$pancreatic) <- "Pancreatic"
+label(df$thyroid) <- "Thyroid"
+label(df$liver_bd) <- "Liver and intrahepatic BD"
 
 label(df$race_white) <- "Race"
 
@@ -130,10 +133,11 @@ render.strat <- function (label, n, ...) {
 tbl1 <- table1(~ mortality + mech_vent + rrt + pressor +
                age_ranges + anchor_age + gender_female + race_white + 
                SOFA_ranges + SOFA + cci_ranges + charlson_comorbidity_index + 
-               los + has_cancer
-               #other + metastasized + breast + prostate + lung_bronchus +
-               #colon_retal + melanoma + bladder + kidney + nhl + endometrial +
-               #leukemia + pancreatic + thyroid + liver_bd +
+               los + has_cancer +
+               breast + prostate + lung_bronchus +
+               colon_retal + melanoma + bladder + kidney + nhl + endometrial +
+               leukemia + pancreatic + thyroid + liver_bd +
+               other + metastasized
                | source,
                data=df,
                render.missing=NULL,

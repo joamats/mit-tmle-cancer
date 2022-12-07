@@ -82,7 +82,11 @@ load_data <- function(cohort){
   return(data[, c("gender_female", "race_white", "anchor_age",
                   "mech_vent", "rrt", "pressor",  
                   "charlson_comorbidity_index",  "SOFA", "los",
-                  "has_cancer", "mortality")])
+                  "has_cancer", "mortality", 
+                  "breast","prostate","lung_bronchus","colon_retal",
+                  "melanoma","bladder","nhl","kidney","endometrial",
+                  "leukemia","pancreatic","thyroid","liver_bd",
+                  "metastasized","other")])
 }
 
 get_merged_datasets <- function() {
