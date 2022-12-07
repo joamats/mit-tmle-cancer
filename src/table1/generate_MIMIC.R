@@ -146,7 +146,7 @@ label(final_df$pancreatic) <- "Pancreatic"
 label(final_df$thyroid) <- "Thyroid"
 label(final_df$liver_bd) <- "Liver and intrahepatic BD"
 
-label(final_df$race) <- "Ethnicity"
+label(final_df$race) <- "Race"
 
 
 render.categorical <- function(x, ...) {
@@ -166,8 +166,7 @@ tbl1 <- table1(~ dis_expiration + vent_req + rrt_new + pressor_lab +
                other + metastasized + breast + prostate + lung_bronchus +
                colon_retal + melanoma + bladder + kidney + nhl + endometrial +
                leukemia + pancreatic + thyroid + liver_bd +
-               race
-               | race_new,
+               race_new,
                data=final_df,
                render.missing=NULL,
                topclass="Rtable1-grid Rtable1-shade Rtable1-times",

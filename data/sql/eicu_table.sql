@@ -184,3 +184,4 @@ ON icustay_detail.patientunitstayid = yug.patientunitstayid
 
 --WHERE yug.ethnicity != "Other/Unknown"
 WHERE icustay_detail.unitvisitnumber = 1
+AND yug.age != "16" AND yug.age != "17"

@@ -92,8 +92,7 @@ final_df$liver_bd[!is.na(final_df$liver_bd)] <- "Yes"
 
 # Get data into factor format
 
-final_df$gender <- factor(df$gender, levels = c('F', 'M'), 
-                          labels = c('Female', 'Male'))
+final_df$gender <- factor(df$gender)
 
 final_df$pressor_lab <- factor(final_df$pressor_lab)
 final_df$rrt_new <- factor(final_df$rrt_new)
@@ -148,7 +147,7 @@ label(final_df$pancreatic) <- "Pancreatic"
 label(final_df$thyroid) <- "Thyroid"
 label(final_df$liver_bd) <- "Liver and intrahepatic BD"
 
-label(final_df$race) <- "Ethnicity"
+label(final_df$race_new) <- "Race"
 
 
 render.categorical <- function(x, ...) {
@@ -168,8 +167,7 @@ tbl1 <- table1(~ dis_expiration + vent_req + rrt_new + pressor_lab +
                other + metastasized + breast + prostate + lung_bronchus +
                colon_retal + melanoma + bladder + kidney + nhl + endometrial +
                leukemia + pancreatic + thyroid + liver_bd +
-               race
-               | race_new,
+               race_new,
                data=final_df,
                render.missing=NULL,
                topclass="Rtable1-grid Rtable1-shade Rtable1-times",

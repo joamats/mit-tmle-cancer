@@ -93,10 +93,7 @@ if __name__ == '__main__':
         df = pd.read_csv("data\dx_MIMIC\processed_icd_codes.csv")
 
         key = "subject_id"
-
-        df_all = df.set_index(key).join(df_sepsis.set_index(key), rsuffix="_")
-
-
+    
     elif args.dataset == "eICU":
         df_sepsis = pd.read_csv("data\sepsis_eICU\sepsis_all.csv")
         # Combine vent, rrt, vasopressor columns into one of each only
@@ -107,8 +104,9 @@ if __name__ == '__main__':
         df.to_csv("data\dx_eICU\processed_icd_codes.csv")
         df = pd.read_csv("data\dx_eICU\processed_icd_codes.csv")
 
-        # Get together
-        df_all = df.set_index(key).join(df_sepsis.set_index(key), rsuffix="_")
+    # Add variable to identiy cancer
+    df_all = df_sepsis.set_index(key).join(df.set_index(key), rsuffix="_")
+    df_all['has_cancer'] = df_all[np.append(unique_disease_types, ['other'])].any(axis=1)
 
     print(f"Patients with Disease of interest: {len(df)}")
     print(f"Sepsis patients: {len(df_sepsis)}")

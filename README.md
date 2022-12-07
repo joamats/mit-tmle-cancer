@@ -3,8 +3,6 @@
 
 (to be organized)
 
-## Code to get sepsis patients with sepsis and cancer
-
 ### MIMIC-IV
 
 #### Get Septic Patients from GCP
