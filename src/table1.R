@@ -45,21 +45,21 @@ df <- df %>% mutate(source = ifelse(source == "mimic", "MIMIC", "eICU"))
 
 
 # Cancer Types
-df$other[!is.na(df$other)] <- "Yes"
-df$metastasized[!is.na(df$metastasized)] <- "Yes"
-df$breast[!is.na(df$breast)] <- "Yes"
-df$prostate[!is.na(df$prostate)] <- "Yes"
-df$lung_bronchus[!is.na(df$lung_bronchus)] <- "Yes"
-df$colon_retal[!is.na(df$colon_retal)] <- "Yes"
-df$melanoma[!is.na(df$melanoma)] <- "Yes"
-df$bladder[!is.na(df$bladder)] <- "Yes"
-df$kidney[!is.na(df$kidney)] <- "Yes"
-df$nhl[!is.na(df$nhl)] <- "Yes"
-df$endometrial[!is.na(df$endometrial)] <- "Yes"
-df$leukemia[!is.na(df$leukemia)] <- "Yes"
-df$pancreatic[!is.na(df$pancreatic)] <- "Yes"
-df$thyroid[!is.na(df$thyroid)] <- "Yes"
-df$liver_bd[!is.na(df$liver_bd)] <- "Yes"
+df$other[df$other == 1] <- "Yes"
+df$metastasized[ df$metastasized == 1] <- "Yes"
+df$breast[df$breast == 1] <- "Yes"
+df$prostate[df$prostate == 1] <- "Yes"
+df$lung_bronchus[df$lung_bronchus == 1] <- "Yes"
+df$colon_retal[df$colon_retal == 1] <- "Yes"
+df$melanoma[df$melanoma == 1] <- "Yes"
+df$bladder[df$bladder == 1] <- "Yes"
+df$kidney[df$kidney == 1] <- "Yes"
+df$nhl[df$nhl == 1] <- "Yes"
+df$endometrial[df$endometrial == 1] <- "Yes"
+df$leukemia[df$leukemia == 1] <- "Yes"
+df$pancreatic[df$pancreatic == 1] <- "Yes"
+df$thyroid[df$thyroid == 1] <- "Yes"
+df$liver_bd[df$liver_bd == 1] <- "Yes"
 
 # Get data into factor format
 df$gender_female <- factor(df$gender_female)

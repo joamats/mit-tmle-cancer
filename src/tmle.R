@@ -23,7 +23,7 @@ tmle_sofa <- function(data_sofa, treatment) {
 
     } else if(treatment == "rrt") {
 
-        W <- data_sofa[, append(confounders, c("rrt", "pressor"))]
+        W <- data_sofa[, append(confounders, c("mech_vent", "pressor"))]
         A <- data_sofa$rrt
 
     } else if(treatment == "pressor") {
@@ -61,7 +61,7 @@ tmle_stratified_sofas <- function(data, treatment, has_cancer, df) {
 
         print(paste0(treatment, " - ", has_cancer, ": ", start, " - ",end))
 
-        if (has_cancer == "non-ancer") {
+        if (has_cancer == "non-cancer") {
             data <- data[data$has_cancer == 0, ]
             
         } else if (has_cancer == "cancer") {
