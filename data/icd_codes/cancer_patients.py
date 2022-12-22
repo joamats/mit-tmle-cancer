@@ -104,8 +104,10 @@ if __name__ == '__main__':
         df.to_csv("data\dx_eICU\processed_icd_codes.csv")
         df = pd.read_csv("data\dx_eICU\processed_icd_codes.csv")
 
-    # Add variable to identiy cancer
+    # Join all
     df_all = df_sepsis.set_index(key).join(df.set_index(key), rsuffix="_")
+    
+    # Add variable to identify cancer
     df_all['has_cancer'] = df_all[np.append(unique_disease_types, ['other'])].any(axis=1)
 
     print(f"Patients with Disease of interest: {len(df)}")
