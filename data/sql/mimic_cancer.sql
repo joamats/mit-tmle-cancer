@@ -1,8 +1,27 @@
+WITH diagnoses_icd10 AS (
+  SELECT 
+    subject_id
+    , hadm_id
+    , CASE
+       WHEN icd_version = 9 THEN icd_conv
+       ELSE icd_code
+      END AS icd_final
+  
+  FROM `protean-chassis-368116.mimiciv_hosp.diagnoses_icd`
+  AS dx
+  LEFT JOIN(
+    SELECT icd9, icd10 AS icd_conv
+    FROM `protean-chassis-368116.icd_codes.icd9_to_10`
+  )
+  AS conv
+  ON conv.icd9 = dx.icd_code
+) 
 SELECT DISTINCT
     icu.subject_id
   , icu.hadm_id
   , icu.stay_id
   , icu.gender
+  , CASE WHEN icu.gender = "F" THEN 1 ELSE 0 END AS sex_female
   , pat.anchor_age
   , icu.race
   , CASE 
@@ -24,7 +43,7 @@ SELECT DISTINCT
       ) THEN "Asian"
       ELSE "Other"
     END AS race_group
-  , weight.weight_admit
+  , weight.weight_admit 
   , adm.adm_type
   , adm.adm_elective
   , ad.discharge_location AS discharge_location
@@ -37,9 +56,29 @@ SELECT DISTINCT
   , icu.icustay_seq
   , icu.first_icu_stay
   , CASE WHEN s3.sepsis3 IS TRUE THEN 1 ELSE 0 END AS sepsis3
-  , charlson.charlson_comorbidity_index
+  , charlson.charlson_comorbidity_index AS CCI
+  , CASE 
+      WHEN ( charlson.charlson_comorbidity_index >= 0 AND charlson.charlson_comorbidity_index <= 3) THEN "0-3"
+      WHEN ( charlson.charlson_comorbidity_index >= 4 AND charlson.charlson_comorbidity_index <= 6) THEN "4-6" 
+      WHEN ( charlson.charlson_comorbidity_index >= 7 AND charlson.charlson_comorbidity_index <= 10) THEN "7-10" 
+      WHEN ( charlson.charlson_comorbidity_index > 10) THEN ">10" 
+    END AS CCI_ranges
+    
   , sf.SOFA
+  , CASE 
+      WHEN ( SOFA >= 0 AND SOFA <= 3) THEN "0-3"
+      WHEN ( SOFA >= 4 AND SOFA <= 6) THEN "4-6" 
+      WHEN ( SOFA >= 7 AND SOFA <= 10) THEN "7-10" 
+      WHEN ( SOFA > 10) THEN ">10" 
+    END AS SOFA_ranges
+
   , oa.oasis AS OASIS
+  , CASE 
+      WHEN ( OASIS >= 0 AND OASIS <= 37) THEN "0-37"
+      WHEN ( OASIS >= 38 AND OASIS <= 45) THEN "38-45" 
+      WHEN ( OASIS >= 46 AND OASIS <= 51) THEN "46-51" 
+      WHEN ( OASIS > 51) THEN ">51" 
+    END AS OASIS_ranges
   , CASE
       WHEN InvasiveVent.InvasiveVent_hr IS NOT NULL
       THEN 1
@@ -257,6 +296,7 @@ SELECT DISTINCT
   , CASE WHEN (
          discharge_location = "DIED"
       OR discharge_location = "HOSPICE"
+      OR ABS(TIMESTAMP_DIFF(pat.dod,icu.icu_outtime,DAY)) <= 1
   ) THEN 1
     ELSE 0
   END AS mortality_in
@@ -387,12 +427,10 @@ LEFT JOIN(
   SELECT
       hadm_id
     , STRING_AGG(icd_final) AS icd_codes
-  FROM `protean-chassis-368116.icd_codes.diagnoses_icd10`
+  FROM diagnoses_icd10
   GROUP BY hadm_id
 )
 AS icd
 ON icd.hadm_id = icu.hadm_id
 
---WHERE has_cancer = TRUE
-
-ORDER BY icu.subject_id
+ORDER BY icu.subject_id, icu.hadm_id, icu.stay_id
