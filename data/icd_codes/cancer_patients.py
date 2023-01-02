@@ -5,8 +5,8 @@ import numpy as np
 import sys
 tqdm.pandas()
 
-sys.path.append("data\sepsis_eICU")
-sys.path.append("data\icd_codes")
+sys.path.append("data/sepsis_eICU")
+sys.path.append("data/icd_codes")
 from combine_treatment import combine_treatment_eICU
 from icd_9_to_10 import icd_9_to_10
 
@@ -14,7 +14,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--original_file",
-                        default="data\dx_eICU\icd_9_and_10.csv",
+                        default="data/dx_eICU/icd_9_and_10.csv",
                         help="Insert your original file with all ICD (9 & 10) codes")
 
     parser.add_argument("--result_file",
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     # 2. Encode ICD codes into columns
     # Get the mapping ICD codes - disease type
-    disease_map = pd.read_csv("data\icd_codes\disease_types.csv")
+    disease_map = pd.read_csv("data/icd_codes/disease_types.csv")
 
     # First let's create a column for each disease
     for index, row in disease_map.iterrows():
@@ -87,22 +87,22 @@ if __name__ == '__main__':
 
     # 3. Combine existing dataset with ICD codes
     if args.dataset == "MIMIC":
-        df_sepsis = pd.read_csv("data\sepsis_MIMIC\sepsis_all.csv")
+        df_sepsis = pd.read_csv("data/sepsis_MIMIC/sepsis_all.csv")
 
-        df.to_csv("data\dx_MIMIC\processed_icd_codes.csv")
-        df = pd.read_csv("data\dx_MIMIC\processed_icd_codes.csv")
+        df.to_csv("data/dx_MIMIC/processed_icd_codes.csv")
+        df = pd.read_csv("data/dx_MIMIC/processed_icd_codes.csv")
 
         key = "subject_id"
     
     elif args.dataset == "eICU":
-        df_sepsis = pd.read_csv("data\sepsis_eICU\sepsis_all.csv")
+        df_sepsis = pd.read_csv("data/sepsis_eICU/sepsis_all.csv")
         # Combine vent, rrt, vasopressor columns into one of each only
         df_sepsis = combine_treatment_eICU(df_sepsis)
 
         key = "patientunitstayid"
 
-        df.to_csv("data\dx_eICU\processed_icd_codes.csv")
-        df = pd.read_csv("data\dx_eICU\processed_icd_codes.csv")
+        df.to_csv("data/dx_eICU/processed_icd_codes.csv")
+        df = pd.read_csv("data/dx_eICU/processed_icd_codes.csv")
 
     # Join all
     df_all = df_sepsis.set_index(key).join(df.set_index(key), rsuffix="_")

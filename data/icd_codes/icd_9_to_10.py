@@ -51,7 +51,7 @@ def icd_9_to_10(original_file, dataset):
 
     df = pd.read_csv(original_file)
 
-    conversions = pd.read_csv("data\icd_codes\ICD10_Formatted.csv")[['ICD-9', 'ICD-10']]
+    conversions = pd.read_csv("data/icd_codes/ICD10_Formatted.csv")[['ICD-9', 'ICD-10']]
 
     mapping = dict(zip(conversions['ICD-9'], conversions['ICD-10']))
 
