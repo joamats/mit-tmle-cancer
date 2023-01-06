@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 df0 = pd.read_csv("data/MIMIC.csv")
 print(f"{len(df0)} stays in the ICU")

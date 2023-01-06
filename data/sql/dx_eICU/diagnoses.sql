@@ -13,3 +13,4 @@ ON icd.patientunitstayid = yug.patientunitstayid
 WHERE yug.unitvisitnumber = 1
 AND yug.age != "16" AND yug.age != "17"
 
+
