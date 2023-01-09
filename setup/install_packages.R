@@ -24,4 +24,3 @@ pkgInstall <- function(packages = "requirements") {
 }
 
 pkgInstall()
-#test
