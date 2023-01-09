@@ -96,11 +96,11 @@ SELECT DISTINCT
   , cancer.loc_thyroid
   , cancer.loc_nhl
   , cancer.loc_leukemia
-  , comms.hypertension_present AS comm_hypertension_present
-  , comms.heart_failure_present AS comm_heart_failure_present
-  , comms.copd_present AS comm_copd_present
-  , comms.asthma_present AS comm_asthma_present
-  , comms.ckd_stages AS commm_ckd_stages
+  , coms.hypertension_present AS com_hypertension_present
+  , coms.heart_failure_present AS com_heart_failure_present
+  , coms.copd_present AS com_copd_present
+  , coms.asthma_present AS com_asthma_present
+  , coms.ckd_stages AS com_ckd_stages
 
   , CASE
       WHEN codes.first_code IS NULL
@@ -253,13 +253,13 @@ LEFT JOIN(
 AS cancer
 ON cancer.hadm_id = icu.hadm_id
 
--- Key Commorbidities
+-- Key Comorbidities
 LEFT JOIN(
   SELECT *
-  FROM `db_name.my_MIMIC.pivoted_commorbidities`
+  FROM `db_name.my_MIMIC.pivoted_comorbidities`
 )
-AS comms
-ON comms.hadm_id = icu.hadm_id
+AS coms
+ON coms.hadm_id = icu.hadm_id
 
 -- Full code vs. DNI/NDR
 LEFT JOIN(

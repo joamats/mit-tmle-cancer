@@ -22,7 +22,8 @@ SELECT DISTINCT
     END AS race_group
   , yug.admissionweight AS weight_admit
   , yug.hospitaladmitsource AS adm_type
-  , yug.hospitaldischargeyear as anchor_year_group
+  , yug.hospitaldischargeyear AS anchor_year_group
+  , yug.hospitaldischargeoffset / 1440 AS los_icu
   , icustay_detail.unitvisitnumber
 
   , yug.Charlson as CCI
@@ -87,11 +88,11 @@ SELECT DISTINCT
   , cancer.loc_thyroid
   , cancer.loc_nhl
   , cancer.loc_leukemia
-  , comms.hypertension_present AS comm_hypertension_present
-  , comms.heart_failure_present AS comm_heart_failure_present
-  , comms.copd_present AS comm_copd_present
-  , comms.asthma_present AS comm_asthma_present
-  , comms.ckd_stages AS commm_ckd_stages
+  , coms.hypertension_present AS com_hypertension_present
+  , coms.heart_failure_present AS com_heart_failure_present
+  , coms.copd_present AS com_copd_present
+  , coms.asthma_present AS com_asthma_present
+  , coms.ckd_stages AS com_ckd_stages
 
   , CASE
       WHEN codes.first_code IS NULL
@@ -147,10 +148,10 @@ ON cancer.patientunitstayid = yug.patientunitstayid
 
 LEFT JOIN(
   SELECT *
-  FROM `db_name.my_eICU.pivoted_commorbidities`
+  FROM `db_name.my_eICU.pivoted_comorbidities`
 )
-AS comms
-ON comms.patientunitstayid = yug.patientunitstayid
+AS coms
+ON coms.patientunitstayid = yug.patientunitstayid
 
 LEFT JOIN(
   SELECT *
