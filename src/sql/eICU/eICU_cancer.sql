@@ -1,11 +1,11 @@
-DROP TABLE IF EXISTS `protean-chassis-368116.my_eICU.cancer_eICU`;
-CREATE TABLE `protean-chassis-368116.my_eICU.cancer_eICU` AS
+DROP TABLE IF EXISTS `db_name.my_eICU.cancer_eICU`;
+CREATE TABLE `db_name.my_eICU.cancer_eICU` AS
 
-SELECT 
+SELECT DISTINCT
     yug.patienthealthsystemstayid 
   , yug.patientunitstayid
   , yug.gender
-  , CASE WHEN yug.gender = 'Female' THEN 1 ELSE NULL END AS sex_female
+  , CASE WHEN yug.gender = 'Female' THEN 1 ELSE 0 END AS sex_female
   , yug.age as anchor_age
   , yug.ethnicity as race
   , CASE 
@@ -53,14 +53,14 @@ SELECT
         OR vent_4 > 0
         OR vent_5 > 0
       THEN 1
-      ELSE NULL
+      ELSE 0
     END AS mech_vent
   , CASE 
       WHEN 
            yug.rrt IS TRUE
         OR rrt_1 > 0
       THEN 1
-      ELSE NULL
+      ELSE 0
     END AS rrt
   , CASE 
       WHEN 
@@ -70,7 +70,7 @@ SELECT
         OR pressor_3 > 0 
         OR pressor_4 > 0 
       THEN 1
-      ELSE NULL
+      ELSE 0
     END AS vasopressor
   
   , cancer.has_cancer
@@ -102,7 +102,7 @@ SELECT
         OR codes.first_code = "No blood products"
         OR codes.first_code = "Full therapy"
       THEN 1
-      ELSE NULL
+      ELSE 0
     END AS is_full_code_admission
   
   , CASE
@@ -111,7 +111,7 @@ SELECT
         OR codes.last_code = "No blood products"
         OR codes.last_code = "Full therapy"
       THEN 1
-      ELSE NULL
+      ELSE 0
     END AS is_full_code_discharge
 
   , CASE 
@@ -119,11 +119,11 @@ SELECT
         OR yug.unitdischargestatus = "Expired"
         OR yug.hospitaldischargestatus = "Expired"
       THEN 1
-      ELSE NULL
+      ELSE 0
     END AS mortality_in 
 
 
-FROM `protean-chassis-368116.my_eICU.yugang` AS yug
+FROM `db_name.my_eICU.yugang` AS yug
 
 
 LEFT JOIN(
@@ -135,7 +135,7 @@ ON icustay_detail.patientunitstayid = yug.patientunitstayid
 
 LEFT JOIN(
   SELECT *
-  FROM `protean-chassis-368116.my_eICU.aux_treatments`
+  FROM `db_name.my_eICU.aux_treatments`
 )
 AS treatments
 ON treatments.patientunitstayid = yug.patientunitstayid
@@ -143,25 +143,23 @@ ON treatments.patientunitstayid = yug.patientunitstayid
 
 LEFT JOIN(
   SELECT *
-  FROM `protean-chassis-368116.my_eICU.pivoted_cancer`
+  FROM `db_name.my_eICU.pivoted_cancer`
 )
 AS cancer
 ON cancer.patientunitstayid = yug.patientunitstayid
 
 LEFT JOIN(
   SELECT *
-  FROM `protean-chassis-368116.my_eICU.pivoted_commorbidities`
+  FROM `db_name.my_eICU.pivoted_commorbidities`
 )
 AS comms
 ON comms.patientunitstayid = yug.patientunitstayid
 
 LEFT JOIN(
   SELECT *
-  FROM `protean-chassis-368116.my_eICU.pivoted_codes`
+  FROM `db_name.my_eICU.pivoted_codes`
 )
 AS codes
 ON codes.patientunitstayid = yug.patientunitstayid 
 
-ORDER BY yug.patienthealthsystemstayid ,yug.patientunitstayid
-
-
+ORDER BY yug.patienthealthsystemstayid, yug.patientunitstayid

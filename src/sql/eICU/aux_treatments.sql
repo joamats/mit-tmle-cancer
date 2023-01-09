@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `protean-chassis-368116.my_eICU.aux_treatments`;
-CREATE TABLE `protean-chassis-368116.my_eICU.aux_treatments` AS
+DROP TABLE IF EXISTS `db_name.my_eICU.aux_treatments`;
+CREATE TABLE `db_name.my_eICU.aux_treatments` AS
 
 SELECT 
   icu.patientunitstayid
@@ -15,7 +15,7 @@ SELECT
   , pressor_3
   , pressor_4
 
-FROM `protean-chassis-368116.eicu_crd_derived.icustay_detail` as icu
+FROM `db_name.eicu_crd_derived.icustay_detail` as icu
 
 
 -- ventilation events

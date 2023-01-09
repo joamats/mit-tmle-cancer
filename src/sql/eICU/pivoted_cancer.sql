@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `protean-chassis-368116.my_eICU.pivoted_cancer`;
-CREATE TABLE `protean-chassis-368116.my_eICU.pivoted_cancer` AS
+DROP TABLE IF EXISTS `db_name.my_eICU.pivoted_cancer`;
+CREATE TABLE `db_name.my_eICU.pivoted_cancer` AS
   
 SELECT icu.patientunitstayid
 
@@ -143,7 +143,7 @@ END AS loc_nhl
   ELSE NULL
 END AS loc_leukemia
 
-FROM `protean-chassis-368116.eicu_crd_derived.icustay_detail` as icu
+FROM `db_name.eicu_crd_derived.icustay_detail` as icu
 
 LEFT JOIN(
   SELECT patientunitstayid AS patientunitstayid_dx

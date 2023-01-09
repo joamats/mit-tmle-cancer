@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `protean-chassis-368116.my_eICU.pivoted_codes`;
-CREATE TABLE `protean-chassis-368116.my_eICU.pivoted_codes` AS
+DROP TABLE IF EXISTS `db_name.my_eICU.pivoted_codes`;
+CREATE TABLE `db_name.my_eICU.pivoted_codes` AS
 
 WITH codes AS(
   
@@ -17,7 +17,7 @@ WITH codes AS(
         icu.patientunitstayid
       , cplitemoffset
       , cplitemvalue
-      , ROW_NUMBER() OVER(PARTITION BY icu.patientunitstayid ORDER BY cplitemoffset DESC ) AS code_seq
+      , ROW_NUMBER() OVER(PARTITION BY icu.patientunitstayid ORDER BY cplitemoffset ASC) AS code_seq
 
     FROM `physionet-data.eicu_crd_derived.icustay_detail`
     AS icu
