@@ -1,6 +1,3 @@
-DROP TABLE IF EXISTS `db_name.my_eICU.cancer_eICU`;
-CREATE TABLE `db_name.my_eICU.cancer_eICU` AS
-
 SELECT DISTINCT
     yug.patienthealthsystemstayid 
   , yug.patientunitstayid

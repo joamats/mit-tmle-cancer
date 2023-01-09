@@ -4,8 +4,8 @@ import numpy as np
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sql_query_path", help="Insert your SQL query's path")
-    parser.add_argument("--destination_path", help="Insert your pulled data's destination path")
+    parser.add_argument("--sql", help="Insert your SQL query's path")
+    parser.add_argument("--destination", help="Insert your pulled data's destination path")
 
     return parser.parse_args()
 
@@ -45,6 +45,6 @@ def run_query(sql_query_path):
 if __name__ == '__main__':
 
     args = parse_args()
-    df = run_query(sql_query_path = args.sql_query_path)
+    df = run_query(sql_query_path = args.sql)
     
-    df.to_csv(args.destination_path)
+    df.to_csv(args.destination)

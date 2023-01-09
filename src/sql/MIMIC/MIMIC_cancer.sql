@@ -1,6 +1,3 @@
-DROP TABLE IF EXISTS `db_name.my_MIMIC.cancer_MIMIC`;
-CREATE TABLE `db_name.my_MIMIC.cancer_MIMIC` AS
-
 SELECT DISTINCT
     icu.subject_id
   , icu.hadm_id
