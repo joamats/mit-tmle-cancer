@@ -1,1 +1,0 @@
-Make sure to remove all dots from the ICD codes
