@@ -12,6 +12,7 @@ load_data <- function(cohort){
   if (file_path == "data/cohort_eICU.csv") {
     
     data <- data %>% mutate(anchor_age = ifelse(anchor_age == "> 89", 91, strtoi(anchor_age)))
+    data['mortality_90'] <- NA
   }
   # Replace all NAs with 0
   #data[is.na(data)] <- 0
@@ -19,8 +20,10 @@ load_data <- function(cohort){
   # Return just keeping columns of interest
   return(data[, c("sex_female", "race_group", "anchor_age",
                   "mech_vent", "rrt", "vasopressor",  
-                  "CCI",  "SOFA", "los_icu",
-                  "mortality_in", "has_cancer",
+                  "CCI", "CCI_ranges", 
+                  "SOFA", "SOFA_ranges", "los_icu",
+                  "mortality_in", "mortality_90",
+                  "has_cancer",
                   "cat_solid", "cat_hematological", "cat_metastasized",
                   "loc_colon_rectal", "loc_liver_bd", "loc_pancreatic", "loc_lung_bronchus",
                   "loc_melanoma", "loc_breast", "loc_endometrial", "loc_prostate",

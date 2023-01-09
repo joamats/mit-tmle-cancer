@@ -1,6 +1,3 @@
-DROP TABLE IF EXISTS `db_name.my_eICU.pivoted_commorbidities`;
-CREATE TABLE `db_name.my_eICU.pivoted_commorbidities` AS
-
 WITH temp_table AS (
 
   SELECT icu.patientunitstayid, 
@@ -182,7 +179,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%I16%"
     OR icd_codes LIKE "%I70%"
     THEN 1
-    ELSE NULL
+    ELSE 0
     END AS hypertension_present
 
   , CASE 
@@ -195,7 +192,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%I43%"
     OR icd_codes LIKE "%I517%"
     THEN 1
-    ELSE NULL
+    ELSE 0
     END AS heart_failure_present
 
   , CASE 
@@ -203,7 +200,7 @@ SELECT temp_table.patientunitstayid
     OR asthma_2 IS NOT NULL
     OR icd_codes LIKE "%J841%"
     THEN 1
-    ELSE NULL
+    ELSE 0
     END AS asthma_present
 
   , CASE 
@@ -217,7 +214,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%J46%"
     OR icd_codes LIKE "%J47%"
     THEN 1
-    ELSE NULL
+    ELSE 0
     END AS copd_present
 
   , CASE 
@@ -241,7 +238,7 @@ SELECT temp_table.patientunitstayid
       OR icd_codes LIKE "%N185%"
       OR icd_codes LIKE "%N186%"
     THEN 5
-    ELSE NULL
+    ELSE 0
     END AS ckd_stages
 
   FROM temp_table

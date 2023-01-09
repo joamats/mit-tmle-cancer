@@ -7,13 +7,18 @@ library(magrittr)
 
 source("src/load_data.R")
 
-df <- read_csv('data/table_all.csv', show_col_types = FALSE)
+df <- read_csv('data/cohort_merged.csv', show_col_types = FALSE)
 
-df <- df %>% mutate(gender_female = ifelse(gender_female == 1, "Female", "Male"))
-df <- df %>% mutate(race_white = ifelse(race_white == 1, "White", "Non-White or Unknown"))
+df$sex_female <- factor(df$sex_female, levels=c(0,1), labels=c("Female", "Male"))
+df$mortality_in <- factor(df$mortality_in, levels=c(0,1), labels=c("Died", "Survived"))
+df$mortality_90 <- factor(df$mortality_90, levels=c(0,1), labels=c("Died", "Survived"))
 
-df <- df %>% mutate(mortality = ifelse(mortality == 1, "Died", "Survived"))
-df <- df %>% mutate(has_cancer = ifelse(has_cancer == 1, "Yes", "No"))
+df$mech_vent <- factor(df$mech_vent, levels=c(0,1), labels=c("Received", "Not received"))
+df$rrt <- factor(df$rrt, levels=c(0,1), labels=c("Received", "Did not receive"))
+df$vasopressor <- factor(df$vasopressor, levels=c(0,1), labels=c("Received", "Not received"))
+
+df$is_full_code_admission <- factor(df$is_full_code_admission, levels=c(0,1), labels=c("Not Full Code", "Full Code"))
+df$is_full_code_discharge <- factor(df$is_full_code_discharge, levels=c(0,1), labels=c("Not Full Code", "Full Code"))
 
 df$age_ranges <- df$anchor_age
 df$age_ranges[df$anchor_age >= 18 & df$anchor_age <= 44] <- "18 - 44"
@@ -22,57 +27,51 @@ df$age_ranges[df$anchor_age >= 65 & df$anchor_age <= 74] <- "65 - 74"
 df$age_ranges[df$anchor_age >= 75 & df$anchor_age <= 84] <- "75 - 84"
 df$age_ranges[df$anchor_age >= 85] <- "85 and higher"
 
-df <- df %>% mutate(mech_vent = ifelse(mech_vent == 1, "Received", "Did not receive"))
-df <- df %>% mutate(rrt = ifelse(rrt == 1, "Received", "Did not receive"))
-df <- df %>% mutate(pressor = ifelse(pressor == 1, "Received", "Did not receive"))
-
-# SOFA
-df$SOFA_ranges <- df$SOFA
-df$SOFA_ranges[df$SOFA >= 0 & df$SOFA <= 3] <- "0 - 3"
-df$SOFA_ranges[df$SOFA >= 4 & df$SOFA <= 6] <- "4 - 6"
-df$SOFA_ranges[df$SOFA >= 7 & df$SOFA <= 10] <- "7 - 10"
-df$SOFA_ranges[df$SOFA >= 11] <- "11 and above"
-
-# Charlson
-df$cci_ranges <- df$charlson_comorbidity_index
-df$cci_ranges[df$charlson_comorbidity_index >= 0 & df$charlson_comorbidity_index <= 3] <- "0 - 3"
-df$cci_ranges[df$charlson_comorbidity_index >= 4 & df$charlson_comorbidity_index <= 6] <- "4 - 6"
-df$cci_ranges[df$charlson_comorbidity_index >= 7 & df$charlson_comorbidity_index <= 10] <- "7 - 10"
-df$cci_ranges[df$charlson_comorbidity_index >= 11] <- "11 and above"
-
 # Cohort of Source
 df <- df %>% mutate(source = ifelse(source == "mimic", "MIMIC", "eICU"))
 
+# Cancer Categories
+df <- df %>% mutate(cat_solid = ifelse(cat_solid == 1, "Present", "Not Present"))
+df <- df %>% mutate(cat_hematological = ifelse(cat_hematological == 1, "Present", "Not Present"))
+df <- df %>% mutate(cat_metastasized = ifelse(cat_metastasized == 1, "Present", "Not Present"))
 
 # Cancer Types
-df$other[df$other == 1] <- "Yes"
-df$metastasized[ df$metastasized == 1] <- "Yes"
-df$breast[df$breast == 1] <- "Yes"
-df$prostate[df$prostate == 1] <- "Yes"
-df$lung_bronchus[df$lung_bronchus == 1] <- "Yes"
-df$colon_retal[df$colon_retal == 1] <- "Yes"
-df$melanoma[df$melanoma == 1] <- "Yes"
-df$bladder[df$bladder == 1] <- "Yes"
-df$kidney[df$kidney == 1] <- "Yes"
-df$nhl[df$nhl == 1] <- "Yes"
-df$endometrial[df$endometrial == 1] <- "Yes"
-df$leukemia[df$leukemia == 1] <- "Yes"
-df$pancreatic[df$pancreatic == 1] <- "Yes"
-df$thyroid[df$thyroid == 1] <- "Yes"
-df$liver_bd[df$liver_bd == 1] <- "Yes"
+df <- df %>% mutate(loc_colon_rectal = ifelse(loc_colon_rectal == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_liver_bd = ifelse(loc_liver_bd == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_pancreatic = ifelse(loc_pancreatic == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_lung_bronchus = ifelse(loc_lung_bronchus == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_melanoma = ifelse(loc_melanoma == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_breast = ifelse(loc_breast == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_endometrial = ifelse(loc_endometrial == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_prostate = ifelse(loc_prostate == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_kidney = ifelse(loc_kidney == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_bladder = ifelse(loc_bladder == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_thyroid = ifelse(loc_thyroid == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_nhl = ifelse(loc_nhl == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_leukemia = ifelse(loc_leukemia == 1, "Present", "Not Present"))
 
 # Get data into factor format
-df$gender_female <- factor(df$gender_female)
-df$age_ranges <- factor(df$age_ranges)
-df$race_white <- factor(df$race_white)
-df$mech_vent <- factor(df$mech_vent)
-df$rrt <- factor(df$rrt)
-df$pressor <- factor(df$pressor)
-df$SOFA_ranges <- factor(df$SOFA_ranges, levels = c('0 - 3', '4 - 6','7 - 10', '11 and above' ))
-df$cci_ranges <- factor(df$cci_ranges, levels = c('0 - 3', '4 - 6','7 - 10', '11 and above'))
-df$source <- factor(df$source)
-df$has_cancer <- factor(df$has_cancer)
+df$SOFA_ranges <- factor(df$SOFA_ranges, levels = c('0-3', '4-6', '7-10', '>10'),
+                                         labels = c('0 - 3', '4 - 6','7 - 10', '11 and above'))
 
+df$CCI_ranges <- factor(df$CCI_ranges, levels = c('0-3', '4-6', '7-10', '>10'),
+                                       labels = c('0 - 3', '4 - 6', '7 - 10', '11 and above'))
+df$source <- factor(df$source)
+
+df$com_hypertension_present <- factor(df$com_hypertension_present, levels = c(0, 1), 
+                        labels = c('Hypertension absent', 'Hypertension present'))
+
+df$com_heart_failure_present <- factor(df$com_heart_failure_present, levels = c(0, 1), 
+                        labels = c('CHF absent', 'CHF present'))
+
+df$com_copd_present <- factor(df$com_copd_present, levels = c(0, 1), 
+                        labels = c('COPD absent', 'COPD present'))
+
+df$com_asthma_present <- factor(df$com_asthma_present, levels = c(0, 1), 
+                        labels = c('Asthma absent', 'Asthma present'))
+
+df$com_ckd_stages <- factor(df$com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5), 
+                 labels = c('CKD absent', 'CKD Stage 1', 'CKD Stage 2', 'CKD Stage 3', 'CKD Stage 4', 'CKD Stage 5'))
 
 # Factorize and label variables
 label(df$age_ranges) <- "Age by group"
@@ -81,42 +80,53 @@ units(df$age_ranges) <- "years"
 label(df$anchor_age) <- "Age overall"
 units(df$anchor_age) <- "years"
 
-label(df$gender_female) <- "Sex"
-label(df$SOFA) <- "SOFA overall"
-label(df$SOFA_ranges) <- "SOFA"
+label(df$sex_female) <- "Sex"
+label(df$SOFA) <- "SOFA continuous"
+label(df$SOFA_ranges) <- "SOFA Ranges"
 
-label(df$los) <- "Length of stay"
-units(df$los) <- "days"
+label(df$los_icu) <- "Length of stay"
+units(df$los_icu) <- "days"
 
-label(df$race_white) <- "Race"
-label(df$charlson_comorbidity_index) <- "Charlson index overall"
-label(df$cci_ranges) <- "Charlson index"
+label(df$CCI) <- "Charlson Comorbidity Index continuous (CCI)"
+label(df$CCI_ranges) <- "CCI Ranges"
 
 label(df$mech_vent) <- "Mechanic Ventilation"
 label(df$rrt) <- "Renal Replacement Therapy"
-label(df$pressor) <- "Vasopressor(s)"
+label(df$vasopressor) <- "Vasopressor(s)"
 
-label(df$mortality) <- "In-hospital Mortality"
+label(df$mortality_in) <- "In-hospital Mortality"
+label(df$mortality_90) <- "90-days Mortality"
 
 label(df$has_cancer) <- "Active Cancer"
 
-label(df$other) <- "Other"
-label(df$metastasized) <- "Metastasized"
-label(df$breast) <- "Breast"
-label(df$prostate) <- "Prostate"
-label(df$lung_bronchus) <- "Lung (including bronchus)"
-label(df$colon_retal) <- "Colon and Rectal (combined)"
-label(df$melanoma) <- "Melanoma"
-label(df$bladder) <- "Bladder"
-label(df$kidney) <- "Kidney"
-label(df$nhl) <- "NHL"
-label(df$endometrial) <- "Endometrial"
-label(df$leukemia) <- "Leukemia"
-label(df$pancreatic) <- "Pancreatic"
-label(df$thyroid) <- "Thyroid"
-label(df$liver_bd) <- "Liver and intrahepatic BD"
+label(df$cat_solid) <- "Solid Cancer"
+label(df$cat_hematological) <- "Hematological Cancer"
+label(df$cat_metastasized) <- "Metastasized Cancer"
 
-label(df$race_white) <- "Race"
+label(df$loc_breast) <- "Breast"
+label(df$loc_prostate) <- "Prostate"
+label(df$loc_lung_bronchus) <- "Lung (including bronchus)"
+label(df$loc_colon_rectal) <- "Colon and Rectal (combined)"
+label(df$loc_melanoma) <- "Melanoma"
+label(df$loc_bladder) <- "Bladder"
+label(df$loc_kidney) <- "Kidney"
+label(df$loc_nhl) <- "NHL"
+label(df$loc_endometrial) <- "Endometrial"
+label(df$loc_leukemia) <- "Leukemia"
+label(df$loc_pancreatic) <- "Pancreatic"
+label(df$loc_thyroid) <- "Thyroid"
+label(df$loc_liver_bd) <- "Liver and intrahepatic BD"
+
+label(df$com_hypertension_present) <- "Hypertension"
+label(df$com_heart_failure_present) <- "Heart Failure"
+label(df$com_copd_present) <- "COPD"
+label(df$com_asthma_present) <- "Asthma"
+label(df$com_ckd_stages) <- "CKD"
+
+label(df$is_full_code_admission) <- "Full Code upon Admission"
+label(df$is_full_code_discharge) <- "Full Code upon Discharge"
+
+label(df$race_group) <- "Race"
 
 
 render.categorical <- function(x, ...) {
@@ -130,14 +140,18 @@ render.strat <- function (label, n, ...) {
 }
 
 # Create Table1 Object
-tbl1 <- table1(~ mortality + mech_vent + rrt + pressor +
-               age_ranges + anchor_age + gender_female + race_white + 
-               SOFA_ranges + SOFA + cci_ranges + charlson_comorbidity_index + 
-               los + has_cancer +
-               breast + prostate + lung_bronchus +
-               colon_retal + melanoma + bladder + kidney + nhl + endometrial +
-               leukemia + pancreatic + thyroid + liver_bd +
-               other + metastasized
+tbl1 <- table1(~ mortality_in + mortality_90 +
+               mech_vent + rrt + vasopressor +
+               age_ranges + anchor_age + sex_female + race_group + 
+               SOFA_ranges + SOFA + CCI_ranges + CCI +
+               is_full_code_admission + is_full_code_discharge +
+               cat_solid + cat_hematological + cat_metastasized +
+               loc_colon_rectal + loc_liver_bd + loc_pancreatic +
+               loc_lung_bronchus + loc_melanoma + loc_breast +
+               loc_endometrial + loc_prostate + loc_kidney +
+               loc_bladder + loc_thyroid + loc_nhl + loc_leukemia +
+               com_hypertension_present + com_heart_failure_present +
+               com_asthma_present + com_copd_present + com_ckd_stages
                | source,
                data=df,
                render.missing=NULL,
