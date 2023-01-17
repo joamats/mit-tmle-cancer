@@ -9,13 +9,13 @@ source("src/load_data.R")
 
 df <- read_csv('data/cohort_merged.csv', show_col_types = FALSE)
 
-df$sex_female <- factor(df$sex_female, levels=c(0,1), labels=c("Female", "Male"))
-df$mortality_in <- factor(df$mortality_in, levels=c(0,1), labels=c("Died", "Survived"))
-df$mortality_90 <- factor(df$mortality_90, levels=c(0,1), labels=c("Died", "Survived"))
+df$sex_female <- factor(df$sex_female, levels=c(1,0), labels=c("Female", "Male"))
+df$mortality_in <- factor(df$mortality_in, levels=c(1,0), labels=c("Died", "Survived"))
+df$mortality_90 <- factor(df$mortality_90, levels=c(1,0), labels=c("Died", "Survived"))
 
-df$mech_vent <- factor(df$mech_vent, levels=c(0,1), labels=c("Received", "Not received"))
-df$rrt <- factor(df$rrt, levels=c(0,1), labels=c("Received", "Did not receive"))
-df$vasopressor <- factor(df$vasopressor, levels=c(0,1), labels=c("Received", "Not received"))
+df$mech_vent <- factor(df$mech_vent, levels=c(1,0), labels=c("Received", "Not received"))
+df$rrt <- factor(df$rrt, levels=c(1,0), labels=c("Received", "Did not receive"))
+df$vasopressor <- factor(df$vasopressor, levels=c(1,0), labels=c("Received", "Not received"))
 
 df$is_full_code_admission <- factor(df$is_full_code_admission, levels=c(0,1), labels=c("Not Full Code", "Full Code"))
 df$is_full_code_discharge <- factor(df$is_full_code_discharge, levels=c(0,1), labels=c("Not Full Code", "Full Code"))
