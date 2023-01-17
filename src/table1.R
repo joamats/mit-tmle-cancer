@@ -70,8 +70,8 @@ df$com_copd_present <- factor(df$com_copd_present, levels = c(0, 1),
 df$com_asthma_present <- factor(df$com_asthma_present, levels = c(0, 1), 
                         labels = c('Asthma absent', 'Asthma present'))
 
-df$com_ckd_stages <- factor(df$com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5), 
-                 labels = c('CKD absent', 'CKD Stage 1', 'CKD Stage 2', 'CKD Stage 3', 'CKD Stage 4', 'CKD Stage 5'))
+df <- within(df, com_ckd_stages <- factor(com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5)))
+df <- within(df, com_ckd_stages <- fct_collapse(com_ckd_stages, Absent=c("0", "1", "2"), Present=c("3", "4", "5")))
 
 # Factorize and label variables
 label(df$age_ranges) <- "Age by group"
