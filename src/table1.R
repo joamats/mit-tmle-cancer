@@ -73,6 +73,14 @@ df$com_asthma_present <- factor(df$com_asthma_present, levels = c(0, 1),
 df <- within(df, com_ckd_stages <- factor(com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5)))
 df <- within(df, com_ckd_stages <- fct_collapse(com_ckd_stages, Absent=c("0", "1", "2"), Present=c("3", "4", "5")))
 
+df$cancer_type <- 0
+df$cancer_type[df$cat_solid == "Present"] <- 1
+df$cancer_type[df$cat_metastasized == "Present"] <- 2
+df$cancer_type[df$cat_hematological == "Present"] <- 3
+
+df$cancer_type <- factor(df$cancer_type, levels = c(1, 2, 3), 
+                        labels = c('Solid cancer', 'Metastasized cancer', 'Hematological cancer'))
+
 # Factorize and label variables
 label(df$age_ranges) <- "Age by group"
 units(df$age_ranges) <- "years"
@@ -163,3 +171,22 @@ tbl1 <- table1(~ mortality_in + mortality_90 +
 
 # Convert to flextable
 t1flex(tbl1) %>% save_as_docx(path="results/table1/MIMIC_and_eICU.docx")
+
+
+###############################
+# Table to check positivity assumption
+###############################
+
+# Create table1 object for SOFA
+tbl_pos <- table1(~ rrt + mech_vent + vasopressor + race_group 
+                  | mortality_in*cancer_type, 
+                  data=df, 
+                  render.missing=NULL, 
+                  topclass="Rtable1-grid Rtable1-shade Rtable1-times",
+                  render.categorical=render.categorical, 
+                  render.strat=render.strat)
+
+# Convert to flextable
+t1flex(tbl_pos) %>% save_as_docx(path="results/table1/Table_posA.docx")
+
+

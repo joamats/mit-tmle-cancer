@@ -26,6 +26,7 @@ SELECT DISTINCT
       OR icd_codes LIKE "%C74%"
       OR icd_codes LIKE "%C75%"
       OR icd_codes LIKE "%C76%"
+      OR icd_codes LIKE "%C80%"
   ) THEN 1
     ELSE NULL
   END AS cat_solid
@@ -41,13 +42,20 @@ SELECT DISTINCT
   END AS cat_metastasized
 
   , CASE WHEN (
-         icd_codes LIKE "%C8"  
-      OR icd_codes LIKE "%C90" 
-      OR icd_codes LIKE "%C91" 
-      OR icd_codes LIKE "%C92" 
-      OR icd_codes LIKE "%C93" 
-      OR icd_codes LIKE "%C94" 
-      OR icd_codes LIKE "%C95" 
+         icd_codes LIKE "%C81%"       
+      OR icd_codes LIKE "%C82%" 
+      OR icd_codes LIKE "%C83%" 
+      OR icd_codes LIKE "%C84%" 
+      OR icd_codes LIKE "%C85%" 
+      OR icd_codes LIKE "%C86%" 
+      OR icd_codes LIKE "%C88%" 
+      OR icd_codes LIKE "%C90%" 
+      OR icd_codes LIKE "%C91%" 
+      OR icd_codes LIKE "%C92%" 
+      OR icd_codes LIKE "%C93%" 
+      OR icd_codes LIKE "%C94%" 
+      OR icd_codes LIKE "%C95%" 
+      OR icd_codes LIKE "%C96%" 
   ) THEN 1
     ELSE NULL
   END AS cat_hematological
