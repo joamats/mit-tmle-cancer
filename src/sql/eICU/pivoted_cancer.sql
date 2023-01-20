@@ -5,6 +5,7 @@ SELECT icu.patientunitstayid
 
 , CASE WHEN 
     icd_codes LIKE "%C__%"
+    AND icd_codes NOT LIKE "%C44%"
     THEN 1
     ELSE NULL
   END AS has_cancer
@@ -14,7 +15,16 @@ SELECT icu.patientunitstayid
     OR icd_codes LIKE "%C1%"
     OR icd_codes LIKE "%C2%"
     OR icd_codes LIKE "%C3%" 
-    OR icd_codes LIKE "%C4%"
+    OR icd_codes LIKE "%C40%"
+    OR icd_codes LIKE "%C41%"
+    OR icd_codes LIKE "%C42%"
+    OR icd_codes LIKE "%C43%"
+    OR icd_codes LIKE "%C4A%"
+    OR icd_codes LIKE "%C45%"
+    OR icd_codes LIKE "%C46%"
+    OR icd_codes LIKE "%C47%"
+    OR icd_codes LIKE "%C48%"
+    OR icd_codes LIKE "%C49%"
     OR icd_codes LIKE "%C5%"
     OR icd_codes LIKE "%C6%"
     OR icd_codes LIKE "%C70%"
