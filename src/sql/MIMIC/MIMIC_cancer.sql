@@ -28,6 +28,7 @@ SELECT DISTINCT
   , weight.weight_admit 
   , adm.adm_type
   , adm.adm_elective
+  , ad.language
   , ad.discharge_location AS discharge_location
   , icu.dod
   , ABS(TIMESTAMP_DIFF(pat.dod,icu.icu_outtime,DAY)) AS dod_icuout_offset_days
@@ -225,7 +226,7 @@ LEFT JOIN (
     , admission_type as adm_type
     , CASE WHEN (
         admission_type LIKE "%ELECTIVE%" OR
-      admission_type LIKE "%SURGICAL SAME DAY ADMISSION%"
+        admission_type LIKE "%SURGICAL SAME DAY ADMISSION%"
     ) 
     THEN 1
     ELSE 0

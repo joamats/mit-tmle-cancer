@@ -17,7 +17,7 @@ df3 = df2.drop_duplicates(subset=['subject_id'], keep='first')
 print(f"Removed {len(df2) - len(df3)} non-first (relative) stays")
 print(f"{len(df3)} patients with active cancer, sepsis, and on first stay")
 
-df3.to_csv('data/cohort_MIMIC.csv')
+df3.to_csv('data/cohort_MIMIC_cancer.csv')
 
 # eICU
 df0 = pd.read_csv("data/eICU.csv")
@@ -33,4 +33,4 @@ df2 = df1[df1.unitvisitnumber == 1]
 print(f"Removed {len(df1) - len(df2)} non-first (relative) stays")
 print(f"{len(df2)} patients with active cancer, sepsis, and on first stay")
 
-df2.to_csv('data/cohort_eICU.csv')
+df2.to_csv('data/cohort_eICU_cancer.csv')
