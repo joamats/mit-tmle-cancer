@@ -66,8 +66,8 @@ get_merged_datasets <- function() {
   data_all <- combine(mimic_all, eicu_all)
   data_cancer <- combine(mimic_cancer, eicu_cancer)
   
-  write.csv(data_all, "data/cohort_all_merged.csv")
-  write.csv(data_cancer, "data/cohort_cancer_merged.csv")
+  write.csv(data_all, "data/cohort_merged_all.csv")
+  write.csv(data_cancer, "data/cohort_merged_cancer.csv")
 
   data_list <- list(data_all, data_cancer)
   return (data_list)
