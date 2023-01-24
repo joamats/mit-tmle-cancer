@@ -17,7 +17,7 @@ df2.to_csv('data/cohort_MIMIC_all.csv')
 
 # eICU
 df0 = pd.read_csv("data/eICU.csv")
-print(f"200859 stays in the ICU")
+print(f"\n200859 stays in the ICU")
 print(f"Removed {200859 - len(df0)} stays without sepsis")
 print(f"{len(df0)} sepsis stays")
 
