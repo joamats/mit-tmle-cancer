@@ -1,8 +1,26 @@
-# SOFA level -> 0-3, 4-6, 7-10, >10
-# database -> mimic, eicu
-# cohort -> cancer, all
 # treatment -> rrt, mech_vent, vassopressor
+# cohort -> cancer, all
+# SOFA level -> 0-3, 4-6, 7-10, >10
 
+read_confounders <- function(t, treatments, confounders) {
+
+    vars <- paste0(t, " ~ ")
+
+    other_t <- treatments$treatment[-j]
+
+    for (k in 1:length(other_t)) {
+
+        vars <- paste0(vars, other_t[k], " + ")
+    }
+
+    for (i in 1:nrow(confounders)) {
+
+        vars <- paste0(vars, confounders$confounder[i], " + ")
+    }
+
+    fla <- substr(vars, 1, nchar(vars)-3)
+    return(as.formula(fla))
+}
 
 read_confounders <- function(t, treatments, confounders) {
 
