@@ -55,8 +55,13 @@ load_data <- function(cohort){
                   "com_copd_present", "com_ckd_stages",
                   "is_full_code_admission", "is_full_code_discharge")
              ]
+<<<<<<< HEAD
     write.csv(data, file_path)
     return(data)
+=======
+ write.csv(data, file_path)
+ return(data)
+>>>>>>> 5e31d895554e66602eb23795d405eaa01eaa7638
 
 }
 

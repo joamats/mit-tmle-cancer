@@ -57,9 +57,9 @@ python3 src/get_data.py --sql "src/sql/eICU/eICU_cancer.sql" --destination "data
 
 This creates the file `data/sepsis_eICU/sepsis_all.csv`
 
-### 2. Get the Cohort
+### 2. Get the Cohorts
 
-With the following command, you can get the same cohort we used for the study:
+With the following command, you can get the same cohorts we used for the study:
 
 ```sh
 source("src/cohort.py")
