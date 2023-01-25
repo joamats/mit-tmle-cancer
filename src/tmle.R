@@ -17,6 +17,7 @@ read_confounders <- function(j, treatments, confounders) {
 run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, sofa_max, results_df) {
 
     W <- data[, confounders]
+    write.csv(W, "data/d.csv")
     A <- data[, treatment]
     Y <- data$mortality_in
 
@@ -30,7 +31,8 @@ run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, s
                 Q.SL.library = c("SL.glm"),
                 )
 
-    log <- summary(result)        
+    log <- summary(result)     
+    print(log)   
 
     results_df[nrow(results_df) + 1,] <- c(
                                             treatment,

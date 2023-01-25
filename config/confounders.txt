@@ -4,7 +4,6 @@ sex_female
 ethno_white
 CCI
 SOFA
-mortality_in
 com_hypertension_present
 com_heart_failure_present
 com_asthma_present
