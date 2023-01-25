@@ -1,6 +1,8 @@
-# treatment -> rrt, mech_vent, vassopressor
-# cohort -> cancer, all
 # SOFA level -> 0-3, 4-6, 7-10, >10
+# database -> mimic, eicu
+# cohort -> cancer, all
+# treatment -> rrt, mech_vent, vassopressor
+
 
 read_confounders <- function(t, treatments, confounders) {
 

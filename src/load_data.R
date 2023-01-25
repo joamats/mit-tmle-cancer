@@ -39,7 +39,7 @@ load_data <- function(cohort){
 
 
   # Return just keeping columns of interest
-  return(data[, c("sex_female", "race_group", "anchor_age",
+  data <- data[, c("sex_female", "race_group", "anchor_age",
                   "mech_vent", "rrt", "vasopressor",  
                   "CCI", "CCI_ranges", 
                   "ethno_white", "lang_eng",
@@ -52,7 +52,10 @@ load_data <- function(cohort){
                   "com_hypertension_present", "com_heart_failure_present", "com_asthma_present",
                   "com_copd_present", "com_ckd_stages",
                   "is_full_code_admission", "is_full_code_discharge")
-             ])
+             ]
+ write.csv(data, file_path)
+ return(data)
+
 }
 
 get_merged_datasets <- function() {
