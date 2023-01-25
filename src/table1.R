@@ -190,5 +190,5 @@ tbl_pos <- table1(~ rrt + mech_vent + vasopressor + race_group
 t1flex(tbl_pos) %>% save_as_docx(path="results/table1/Table_posA.docx")
 
 #blblalbab
-
+#test git commit online
 #sdkdkfjdkj
