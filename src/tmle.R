@@ -1,110 +1,109 @@
 library(tmle)
 
-source("src/load_data.R")
+read_confounders <- function(j, treatments, confounders) {
 
-# Get data within SOFA ranges
-data_between_sofa <- function(data, lower_bound, upper_bound) {
+    other_t <- treatments$treatment[-j]
 
-    res <- data[data$SOFA >= lower_bound & data$SOFA <= upper_bound, ]
-    
-    return(na.omit(res))
-}
+    final_confounders <- other_t
 
-# TMLE by SOFA
-tmle_sofa <- function(data_sofa, treatment) {
-
-    confounders <- c("source","anchor_age","gender_female","race_white",
-                     "SOFA","charlson_comorbidity_index")
-
-    if(treatment == "mech_vent") {
-
-        W <- data_sofa[, append(confounders, c("rrt", "pressor"))]
-        A <- data_sofa$mech_vent
-
-    } else if(treatment == "rrt") {
-
-        W <- data_sofa[, append(confounders, c("mech_vent", "pressor"))]
-        A <- data_sofa$rrt
-
-    } else if(treatment == "pressor") {
-
-        W <- data_sofa[, append(confounders, c("rrt", "mech_vent"))]
-                           
-        A <- data_sofa$pressor
+    for (i in 1:nrow(confounders)) {
+        final_confounders <- append(final_confounders, confounders$confounder[i])
     }
 
-    Y <- data_sofa$mortality
-
-    result <- tmle(Y = Y,
-                   A = A,
-                   W = W,
-                   family = "binomial", 
-                   gbound = c(0.05, 0.95)
-                  )
-
-    log <- summary(result)
-    print(log)
-
-    return(log)
+    return(final_confounders)
 }
 
+# run TMLE 
+run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, sofa_max, results_df) {
 
-# run TMLE by SOFA only (main analysis)
-tmle_stratified_sofas <- function(data, treatment, has_cancer, df) {
+    W <- data[, confounders]
+    A <- data[, treatment]
+    Y <- data$mortality_in
 
-    sofa_ranges <- list(list(0, 3), list(4,6), list(7, 10), list(11, 100))
+    result <- tmle(
+                Y = Y,
+                A = A,
+                W = W,
+                family = "binomial", 
+                gbound = c(0.05, 0.95),
+                g.SL.library = c("SL.glm"),
+                Q.SL.library = c("SL.glm"),
+                )
 
-    for (sofa in sofa_ranges) {
-        
-        start <- sofa[[1]]
-        end <- sofa[[2]]
+    log <- summary(result)        
 
-        print(paste0(treatment, " - ", has_cancer, ": ", start, " - ",end))
-
-        if (has_cancer == "non-cancer") {
-            data <- data[data$has_cancer == 0, ]
-            
-        } else if (has_cancer == "cancer") {
-            data <- data[data$has_cancer == 1, ]
-            
-        } # else, nothing because race = "all" needs no further filtering
-
-        data_sofa <- data_between_sofa(data, start, end)
-        log <- tmle_sofa(data_sofa, treatment)
-
-        df[nrow(df) + 1,] <- c(treatment,
-                               has_cancer,
-                               start,
-                               end,
-                               log$estimates$ATE$psi,
-                               log$estimates$ATE$CI[1],
-                               log$estimates$ATE$CI[2],
-                               log$estimates$ATE$pvalue,
-                               nrow(data_sofa)
-                              ) 
-    }  
-
-    return (df)
+    results_df[nrow(results_df) + 1,] <- c(
+                                            treatment,
+                                            database,
+                                            cohort,
+                                            sofa_min,
+                                            sofa_max,
+                                            log$estimates$ATE$psi,
+                                            log$estimates$ATE$CI[1],
+                                            log$estimates$ATE$CI[2],
+                                            log$estimates$ATE$pvalue,
+                                            nrow(data)
+                                            ) 
+    return (results_df)
 }
 
-
-# Get merged datasets' data
-data <- read_csv('data/table_all.csv', show_col_types = FALSE)
-
-# List with possible invasive treatments
-treatments <- list("mech_vent", "rrt", "pressor")
-has_cancer_list <- list("all", "non-cancer", "cancer")
+# Main
+databases <- c("MIMIC")#, "eICU")
+cohorts <- c("all")#, "cancer")
+sofa_ranges <- read.csv("config/SOFA_ranges.csv")
+treatments <- read.delim("config/treatments.txt")
+confounders <- read.delim("config/confounders.txt")
 
 # Dataframe to hold results
-df <- data.frame(matrix(ncol=9, nrow=0))
-colnames(df) <- c("treatment", "has_cancer", "sofa_start", "sofa_end",
-                    "psi", "i_ci","s_ci", "pvalue", "n")
+results_df <- data.frame(matrix(ncol=10, nrow=0))
+colnames(results_df) <- c(
+                          "treatment",
+                          "database",
+                          "cohort",
+                          "sofa_start",
+                          "sofa_end",
+                          "psi",
+                          "i_ci",
+                          "s_ci",
+                          "pvalue",
+                          "n")
 
-# Go through all treatments
-for (treatment in treatments) {
-    for (has_cancer in has_cancer_list){
-        df <- tmle_stratified_sofas(data, treatment, has_cancer, df)
+
+for (d in databases) {
+    for (c in cohorts) {
+
+        # Read Data for this database and cohort
+        data <- read.csv(paste0("data/cohort_", d, "_", c, ".csv"))
+
+        print(paste0("Study: ", d, " - ", c))
+
+        for (j in 1:nrow(treatments)) {
+            # Treatment
+            treatment <- treatments$treatment[j]
+            print(paste0("Treatment: ", treatment))
+
+            # Get formula with confounders and treatment
+            model_confounders <- read_confounders(j, treatments, confounders) 
+            #print(paste("Adjusted for: ", confounders, sep=", "))
+
+            for (i in 1:nrow(sofa_ranges)) {
+                
+                sofa_min <- sofa_ranges$min[i]
+                sofa_max <- sofa_ranges$max[i]
+
+                print(paste0("Stratification by SOFA: ", sofa_min, " - ", sofa_max))
+
+                # Stratify by SOFA
+                subset_data <- subset(data, SOFA <= sofa_max & SOFA >= sofa_min)
+
+                # Run TMLE
+                results_df <- run_tmle(subset_data, treatment, model_confounders, d, c, sofa_min, sofa_max, results_df)
+
+                # Save Results
+                write.csv(results_df, "results/TMLE.csv")
+
+            }           
+        }
     }
 }
 
-write.csv(df, "results/TMLE.csv")

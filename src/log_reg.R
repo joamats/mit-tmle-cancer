@@ -28,7 +28,6 @@ run_glm <- function(df, fla) {
 }
 
 # Main
-
 databases <- c("MIMIC", "eICU")
 cohorts <- c("all", "cancer")
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
