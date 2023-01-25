@@ -48,8 +48,8 @@ run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, s
 }
 
 # Main
-databases <- c("MIMIC")#, "eICU")
-cohorts <- c("all")#, "cancer")
+databases <- c("MIMIC", "eICU")
+cohorts <- c("all", "cancer")
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
 confounders <- read.delim("config/confounders.txt")
