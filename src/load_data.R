@@ -11,7 +11,9 @@ load_data <- function(cohort){
   # Load Data  
   data <- read.csv(file_path, header = TRUE, stringsAsFactors = TRUE)
 
- if (file_path == "data/cohort_eICU_all.csv" | file_path == "data/cohort_eICU_cancer.csv") {
+ if (file_path == "data/cohort_eICU_all.csv" | 
+     file_path == "data/cohort_eICU_cancer.csv" |
+     file_path == "data/cohort_eICU_noncancer.csv") {
     
     data <- data %>% mutate(anchor_age = ifelse(anchor_age == "> 89", 91, strtoi(anchor_age)))
   
@@ -44,7 +46,7 @@ load_data <- function(cohort){
   data <- data[, c("sex_female", "race_group", "anchor_age",
                   "mech_vent", "rrt", "vasopressor",  
                   "CCI", "CCI_ranges", 
-                  "ethno_white", "lang_eng",
+                  "ethno_white", "language", "lang_eng",
                   "SOFA", "SOFA_ranges", "los_icu",
                   "mortality_in", "mortality_90",
                   "has_cancer", "cat_solid", "cat_hematological", "cat_metastasized",
@@ -64,17 +66,23 @@ get_merged_datasets <- function() {
 
   mimic_all <- load_data("MIMIC_all")
   eicu_all <- load_data("eICU_all")
+
   mimic_cancer <- load_data("MIMIC_cancer")
   eicu_cancer <- load_data("eICU_cancer")
 
-  # merge both datasets 
+  mimic_noncancer <- load_data("MIMIC_noncancer")
+  eicu_noncancer <- load_data("eICU_noncancer")
+
+  # merge 3 cohorts
   data_all <- combine(mimic_all, eicu_all)
   data_cancer <- combine(mimic_cancer, eicu_cancer)
+  data_noncancer <- combine(mimic_noncancer, eicu_noncancer)
   
   write.csv(data_all, "data/cohort_merged_all.csv")
   write.csv(data_cancer, "data/cohort_merged_cancer.csv")
+  write.csv(data_noncancer, "data/cohort_merged_noncancer.csv")
 
-  data_list <- list(data_all, data_cancer)
+  data_list <- list(data_all, data_cancer, data_noncancer)
   return (data_list)
 }
 

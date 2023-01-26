@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('TKAgg')
 
 df = pd.read_csv("results\TMLE.csv")
+df = df[df.cohort == "cancer"]
 
 # Transform into percentages
 df.psi = df.psi * 100
@@ -14,7 +15,7 @@ df.s_ci = df.s_ci * 100
 
 treatments = df.treatment.unique()
 
-t_dict = dict(zip(["mech_vent", "rrt", "pressor"],
+t_dict = dict(zip(["mech_vent", "rrt", "vasopressor"],
                   ["Mechanical Ventilation", "RRT", "Vasopressor(s)"]))
 colors = ["tab:orange", "tab:green", "tab:blue"]
 
@@ -24,8 +25,8 @@ fig.suptitle('TMLE')
 
 for i, t in enumerate(treatments):
 
-    df_temp1 = df[(df.treatment == t) & (df.has_cancer == "non-cancer")]
-    df_temp2 = df[(df.treatment == t) & (df.has_cancer == "cancer")]
+    df_temp1 = df[(df.treatment == t) & (df.database == "MIMIC")]
+    df_temp2 = df[(df.treatment == t) & (df.database == "eICU")]
     axes[i].set(xlabel=None)
     axes[i].set(ylabel=None)
 
@@ -33,13 +34,13 @@ for i, t in enumerate(treatments):
                      yerr=((df_temp1.psi- df_temp1.i_ci), (df_temp1.s_ci-df_temp1.psi)),
                      fmt='-o', c='tab:gray', ecolor='tab:gray',
                      elinewidth=.4, linewidth=1.5, capsize=4, markeredgewidth=.4,
-                     label="Non-Cancer")
+                     label="MIMIC")
     
     axes[i].errorbar(x=df_temp2.sofa_start, y=df_temp2.psi,
                      yerr=((df_temp2.psi- df_temp2.i_ci), (df_temp2.s_ci-df_temp2.psi)),
                      fmt='-o', c='tab:red', ecolor='tab:red',
                      elinewidth=.4, linewidth=1.5, capsize=4, markeredgewidth=.4,
-                     label="Cancer")
+                     label="eICU")
 
     axes[i].axhline(y=0, xmin=0, xmax=1, c="black", linewidth=.7, linestyle='--')
     axes[i].set_ylim([-30, 30])
@@ -52,4 +53,4 @@ for i, t in enumerate(treatments):
 
 fig.supxlabel('SOFA Range')
 
-fig.savefig("results/fig3_TMLE_cancer2.png", dpi=700)
+fig.savefig("results/tmle/1.png", dpi=700)

@@ -14,10 +14,9 @@ read_confounders <- function(j, treatments, confounders) {
 }
 
 # run TMLE 
-run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, sofa_max, results_df) {
+run_tmle <- function(data, treatment, confounders, database, cohort, cancer_cat, results_df) {
 
     W <- data[, confounders]
-    write.csv(W, "data/d.csv")
     A <- data[, treatment]
     Y <- data$mortality_in
 
@@ -32,14 +31,12 @@ run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, s
                 )
 
     log <- summary(result)     
-    print(log)   
 
     results_df[nrow(results_df) + 1,] <- c(
                                             treatment,
                                             database,
                                             cohort,
-                                            sofa_min,
-                                            sofa_max,
+                                            cancer_cat,
                                             log$estimates$ATE$psi,
                                             log$estimates$ATE$CI[1],
                                             log$estimates$ATE$CI[2],
@@ -51,25 +48,23 @@ run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, s
 
 # Main
 databases <- c("MIMIC", "eICU")
-cohorts <- c("all", "cancer")
-sofa_ranges <- read.csv("config/SOFA_ranges.csv")
+cohorts <- c("cancer")
+cancer_cats <- c("cat_solid", "cat_hematological", "cat_metastasized")
 treatments <- read.delim("config/treatments.txt")
-confounders <- read.delim("config/confounders.txt")
+confounders <- read.delim("config/confounders_cancer_cat.txt")
 
 # Dataframe to hold results
-results_df <- data.frame(matrix(ncol=10, nrow=0))
+results_df <- data.frame(matrix(ncol=9, nrow=0))
 colnames(results_df) <- c(
                           "treatment",
                           "database",
                           "cohort",
-                          "sofa_start",
-                          "sofa_end",
+                          "cancer_cat",
                           "psi",
                           "i_ci",
                           "s_ci",
                           "pvalue",
                           "n")
-
 
 for (d in databases) {
     for (c in cohorts) {
@@ -86,23 +81,19 @@ for (d in databases) {
 
             # Get formula with confounders and treatment
             model_confounders <- read_confounders(j, treatments, confounders) 
-            #print(paste("Adjusted for: ", confounders, sep=", "))
 
-            for (i in 1:nrow(sofa_ranges)) {
-                
-                sofa_min <- sofa_ranges$min[i]
-                sofa_max <- sofa_ranges$max[i]
+            for (cat in cancer_cats) {
 
-                print(paste0("Stratification by SOFA: ", sofa_min, " - ", sofa_max))
+                print(paste0("Stratification by Cancer Category: ", cat))
 
-                # Stratify by SOFA
-                subset_data <- subset(data, SOFA <= sofa_max & SOFA >= sofa_min)
+                # Stratify by Cancer Category
+                subset_data <- subset(data, data[cat] == 1)
 
                 # Run TMLE
-                results_df <- run_tmle(subset_data, treatment, model_confounders, d, c, sofa_min, sofa_max, results_df)
+                results_df <- run_tmle(subset_data, treatment, model_confounders, d, c, cat, results_df)
 
                 # Save Results
-                write.csv(results_df, "results/TMLE.csv")
+                write.csv(results_df, "results/TMLE_cancer_cat.csv")
 
             }           
         }
