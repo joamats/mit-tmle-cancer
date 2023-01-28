@@ -2,20 +2,6 @@
 
 (to be organized)
 
-### MIMIC-IV
-
-#### Get the Data
-
-run
-
-```py
-
-python3 src/get_data.py --sql "src/sql/MIMIC/MIMIC_cancer.sql" --destination "data/sepsis_MIMIC/sepsis_all.csv"
-
-```
-
-#### eICU
-
 ## How to run this project?
 
 ### 1. Get the Data!

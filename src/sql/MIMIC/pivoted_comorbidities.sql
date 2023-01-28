@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `db_name.my_MIMIC.pivoted_commorbidities`;
-CREATE TABLE `db_name.my_MIMIC.pivoted_commorbidities` AS
+DROP TABLE IF EXISTS `db_name.my_MIMIC.pivoted_comorbidities`;
+CREATE TABLE `db_name.my_MIMIC.pivoted_comorbidities` AS
 
 SELECT DISTINCT
     icu.hadm_id
@@ -46,6 +46,17 @@ SELECT DISTINCT
       ELSE NULL
   END AS asthma_present
 
+  , CASE WHEN (
+       icd_codes LIKE "%I20%"
+    OR icd_codes LIKE "%I21%"
+    OR icd_codes LIKE "%I22%"
+    OR icd_codes LIKE "%I23%"
+    OR icd_codes LIKE "%I24%"
+    OR icd_codes LIKE "%I25%"
+  ) THEN 1
+    ELSE NULL
+  END AS cad_present
+
   , CASE 
       WHEN icd_codes LIKE "%N181%" THEN 1
       WHEN icd_codes LIKE "%N182%" THEN 2
@@ -57,8 +68,16 @@ SELECT DISTINCT
       )
       THEN 5
     ELSE NULL
-  
   END AS ckd_stages
+
+  , CASE 
+      WHEN icd_codes LIKE "%E08%" THEN 1
+      WHEN icd_codes LIKE "%E09%" THEN 1
+      WHEN icd_codes LIKE "%E10%" THEN 1
+      WHEN icd_codes LIKE "%E11%" THEN 2
+      WHEN icd_codes LIKE "%E13%" THEN 1
+    ELSE NULL
+  END AS diabetes_types
 
 FROM `physionet-data.mimiciv_derived.icustay_detail` AS icu
 

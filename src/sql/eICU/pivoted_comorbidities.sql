@@ -1,4 +1,8 @@
-WITH temp_table AS (
+DROP TABLE IF EXISTS `db_name.my_eICU.pivoted_comorbidities`;
+CREATE TABLE `db_name.my_eICU.pivoted_comorbidities` AS
+  
+  
+  WITH temp_table AS (
 
   SELECT icu.patientunitstayid, 
   dx.*, ph.*
@@ -75,12 +79,33 @@ WITH temp_table AS (
     END)
     AS copd_1
 
+    , MAX( 
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%coronary%" THEN 1
+      ELSE NULL
+    END)
+    AS cad_1
+
     , MAX(
     CASE
       WHEN LOWER(diagnosisstring) LIKE "%asthma%" THEN 1
       ELSE NULL
     END)
     AS asthma_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%diabetes mellitus|Type I%" THEN 1
+      ELSE NULL
+    END)
+    AS diabetes_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%diabetes mellitus|Type II%" THEN 1
+      ELSE NULL
+    END)
+    AS diabetes_2
 
     FROM `physionet-data.eicu_crd.diagnosis`
     GROUP BY patientunitstayid
@@ -150,12 +175,26 @@ WITH temp_table AS (
     END)
     AS copd_2
 
+    , MAX(
+    CASE
+      WHEN LOWER(pasthistorypath) LIKE "%coronary%" THEN 1
+      ELSE NULL
+    END)
+    AS cad_2
+
     ,MAX(
     CASE
       WHEN LOWER(pasthistorypath) LIKE "%asthma%" THEN 1
       ELSE NULL
     END)
     AS asthma_2
+
+    ,MAX(
+    CASE
+      WHEN LOWER(pasthistorypath) LIKE "%diabetes%" THEN 1
+      ELSE NULL
+    END)
+    AS diabetes_3
 
     FROM `physionet-data.eicu_crd.pasthistory`
     GROUP BY patientunitstayid
@@ -218,6 +257,19 @@ SELECT temp_table.patientunitstayid
     END AS copd_present
 
   , CASE 
+    WHEN cad_1 IS NOT NULL
+    OR cad_2 IS NOT NULL
+    OR icd_codes LIKE "%I20%"
+    OR icd_codes LIKE "%I21%"
+    OR icd_codes LIKE "%I22%"
+    OR icd_codes LIKE "%I23%"
+    OR icd_codes LIKE "%I24%"
+    OR icd_codes LIKE "%I25%"
+    THEN 1
+    ELSE 0
+    END AS cad_present
+
+  , CASE 
     WHEN renal_11 IS NOT NULL
       OR icd_codes LIKE "%N181%" 
     THEN 1
@@ -240,6 +292,20 @@ SELECT temp_table.patientunitstayid
     THEN 5
     ELSE 0
     END AS ckd_stages
+
+  , CASE 
+    WHEN diabetes_1 IS NOT NULL
+      OR icd_codes LIKE "%E08%" 
+      OR icd_codes LIKE "%E09%"
+      OR icd_codes LIKE "%E10%"
+      OR icd_codes LIKE "%E13%"
+    THEN 1
+    WHEN diabetes_2 IS NOT NULL
+      OR diabetes_3 IS NOT NULL
+      OR icd_codes LIKE "%E11%"
+    THEN 2
+    ELSE 0
+    END AS diabetes_types
 
   FROM temp_table
   ORDER BY patientunitstayid
