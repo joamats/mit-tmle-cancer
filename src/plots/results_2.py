@@ -13,17 +13,15 @@ def plot(df, database):
     df.i_ci = df.i_ci * 100
     df.s_ci = df.s_ci * 100
 
-    treatments = df.treatment.unique()
-
     t_dict = dict(zip(["mech_vent", "rrt", "vasopressor"],
                     ["Mechanical Ventilation", "RRT", "Vasopressor(s)"]))
     colors = ["tab:orange", "tab:green", "tab:blue"]
 
-    fig, axes = plt.subplots(1, len(treatments), sharex=True,  figsize=(8.5,2.5), constrained_layout=True)
+    fig, axes = plt.subplots(1, len(t_dict.keys()), sharex=True,  figsize=(8.5,2.5), constrained_layout=True)
 
     fig.suptitle(f'{database} TMLE')
 
-    for i, t in enumerate(treatments):
+    for i, t in enumerate(t_dict.keys()):
 
         df_temp1 = df[(df.treatment == t) & (df.cohort == "noncancer")]
         df_temp2 = df[(df.treatment == t) & (df.cohort == "cancer")]
@@ -55,11 +53,12 @@ def plot(df, database):
 
     fig.savefig(f"results/tmle/2_{database}.png", dpi=700)
 
-databases = ["MIMIC", "eICU"]
+#databases = ["MIMIC", "eICU"]
+databases = ["merged"]
 
 for d in databases:
 
-    df = pd.read_csv("results\TMLE.csv")
+    df = pd.read_csv("results/TMLE_SOFA.csv")
     df = df[df.database == d]
     plot(df, d)
 

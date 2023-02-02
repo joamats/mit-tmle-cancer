@@ -48,7 +48,7 @@ run_tmle <- function(data, treatment, confounders, database, cohort, sofa_min, s
 }
 
 # Main
-databases <- c("MIMIC", "eICU")
+databases <- c("merged")
 cohorts <- c("all", "cancer", "noncancer")
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
@@ -84,7 +84,6 @@ for (d in databases) {
 
             # Get formula with confounders and treatment
             model_confounders <- read_confounders(j, treatments, confounders) 
-            #print(paste("Adjusted for: ", confounders, sep=", "))
 
             for (i in 1:nrow(sofa_ranges)) {
                 
