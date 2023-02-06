@@ -47,9 +47,13 @@ run_tmle <- function(data, treatment, confounders, database, cohort, cancer_cat,
 }
 
 # Main
-databases <- c("MIMIC", "eICU")
+#databases <- c("MIMIC", "eICU")
+databases <- c("merged")
 cohorts <- c("cancer")
+
 cancer_cats <- c("cat_solid", "cat_hematological", "cat_metastasized")
+#cancer_grps <- c("group_liver_bd_pancreatic", "group_prostate_breast", "group_lung_bronchus")
+
 treatments <- read.delim("config/treatments.txt")
 confounders <- read.delim("config/confounders_cancer_cat.txt")
 
