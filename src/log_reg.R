@@ -1,3 +1,5 @@
+library("openxlsx")
+
 read_confounders <- function(j, treatments, confounders) {
 
     t <- treatments$treatment[j]
@@ -28,20 +30,22 @@ run_glm <- function(df, fla) {
 }
 
 # Main
-databases <- c("MIMIC", "eICU")
+#databases <- c("MIMIC", "eICU")
 cohorts <- c("all", "cancer")
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
-confounders <- read.delim("config/confounders.txt")
+confounders <- read.delim("config/confounders_sofa.txt")
 
 
-for (d in databases) {
+#for (d in databases) {
     for (c in cohorts) {
 
         # Read Data for this database and cohort
-        df <- read.csv(paste0("data/cohort_", d, "_", c, ".csv"))
+        df <- read.csv(paste0("data/cohort_merged_", c, ".csv"))
+        # df <- read.csv(paste0("data/cohort_", d, "_", c, ".csv")) # with separate databases
 
-        print(paste0("Study: ", d, " - ", c))
+        print(paste0("Study: ", " - ", c))
+        # print(paste0("Study: ", d, " - ", c)) # with separate databases
 
         for (i in 1:nrow(sofa_ranges)) {
 
@@ -64,12 +68,17 @@ for (d in databases) {
 
                 # Run GLM
                 m_OR <- run_glm(subset_df, formula)
+                m_OR_frame <- as.data.frame(m_OR)
+                m_OR_frame$varnames <- rownames(m_OR)
                 print("GLM Results")
-                print(m_OR)
+                print(m_OR_frame)
 
                 # Save Results
-                #write.csv(m_OR, paste0("results/glm/", d, "_", c, ".csv"))
+                write.xlsx(m_OR_frame, 
+                file=paste0("results/glm/merged_", c, "_S_max", sofa_max, "_", t, ".xlsx"),
+                asTable = TRUE)
+                #write.csv(m_OR, paste0("results/glm/", d, "_", c, ".csv")) # with separate databases
             }           
         }
     }
-}
+#}

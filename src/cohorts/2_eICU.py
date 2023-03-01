@@ -31,7 +31,7 @@ demo4 = print_demo(get_demography(df4))
 print(f"{len(df4)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({demo4})\n")
 
 # Save full cohort
-df4.to_csv('data/cohorts/MIMIC_all.csv')
+df4.to_csv('data/cohorts/eICU_all.csv')
 print(f"Saving full cohort to data/cohorts/eICU_all.csv\n")
 
 
@@ -49,6 +49,6 @@ demo6 = print_demo(get_demography(df6))
 print(f"{len(df6)} stays with sepsis, cancer, LoS > 24h, non-recurrent, adult stays \n({demo6})\n")
 
 # Save cancer cohort
-df5.to_csv('data/cohorts/MIMIC_cancer.csv')
+df5.to_csv('data/cohorts/eICU_cancer.csv')
 print(f"Saving cancer cohort to data/cohorts/eICU_cancer.csv\n")
 
