@@ -7,11 +7,10 @@ library(magrittr)
 
 source("src/load_data.R")
 
-df <- read_csv('data/cohort_merged.csv', show_col_types = FALSE)
+df <- read_csv('data/cohorts/merged_all.csv', show_col_types = FALSE)
 
 df$sex_female <- factor(df$sex_female, levels=c(1,0), labels=c("Female", "Male"))
 df$mortality_in <- factor(df$mortality_in, levels=c(1,0), labels=c("Died", "Survived"))
-df$mortality_90 <- factor(df$mortality_90, levels=c(1,0), labels=c("Died", "Survived"))
 
 df$mech_vent <- factor(df$mech_vent, levels=c(1,0), labels=c("Received", "Not received"))
 df$rrt <- factor(df$rrt, levels=c(1,0), labels=c("Received", "Did not receive"))
@@ -31,9 +30,9 @@ df$age_ranges[df$anchor_age >= 85] <- "85 and higher"
 df <- df %>% mutate(source = ifelse(source == "mimic", "MIMIC", "eICU"))
 
 # Cancer Categories
-df <- df %>% mutate(cat_solid = ifelse(cat_solid == 1, "Present", "Not Present"))
-df <- df %>% mutate(cat_hematological = ifelse(cat_hematological == 1, "Present", "Not Present"))
-df <- df %>% mutate(cat_metastasized = ifelse(cat_metastasized == 1, "Present", "Not Present"))
+df <- df %>% mutate(group_solid = ifelse(group_solid == 1, "Present", "Not Present"))
+df <- df %>% mutate(group_hemat = ifelse(group_hemat == 1, "Present", "Not Present"))
+df <- df %>% mutate(group_metas = ifelse(group_metas == 1, "Present", "Not Present"))
 
 # Cancer Types
 df <- df %>% mutate(loc_colon_rectal = ifelse(loc_colon_rectal == 1, "Present", "Not Present"))
@@ -74,9 +73,9 @@ df <- within(df, com_ckd_stages <- factor(com_ckd_stages, levels = c(0, 1, 2, 3,
 df <- within(df, com_ckd_stages <- fct_collapse(com_ckd_stages, Absent=c("0", "1", "2"), Present=c("3", "4", "5")))
 
 df$cancer_type <- 0
-df$cancer_type[df$cat_solid == "Present"] <- 1
-df$cancer_type[df$cat_metastasized == "Present"] <- 2
-df$cancer_type[df$cat_hematological == "Present"] <- 3
+df$cancer_type[df$group_solid == "Present"] <- 1
+df$cancer_type[df$group_metas == "Present"] <- 2
+df$cancer_type[df$group_hemat == "Present"] <- 3
 
 df$cancer_type <- factor(df$cancer_type, levels = c(1, 2, 3), 
                         labels = c('Solid cancer', 'Metastasized cancer', 'Hematological cancer'))
@@ -103,13 +102,12 @@ label(df$rrt) <- "Renal Replacement Therapy"
 label(df$vasopressor) <- "Vasopressor(s)"
 
 label(df$mortality_in) <- "In-hospital Mortality"
-label(df$mortality_90) <- "90-days Mortality"
 
 label(df$has_cancer) <- "Active Cancer"
 
-label(df$cat_solid) <- "Solid Cancer"
-label(df$cat_hematological) <- "Hematological Cancer"
-label(df$cat_metastasized) <- "Metastasized Cancer"
+label(df$group_solid) <- "Solid Cancer"
+label(df$group_hemat) <- "Hematological Cancer"
+label(df$group_metas) <- "Metastasized Cancer"
 
 label(df$loc_breast) <- "Breast"
 label(df$loc_prostate) <- "Prostate"
@@ -148,18 +146,43 @@ render.strat <- function (label, n, ...) {
 }
 
 # Create Table1 Object
-tbl1 <- table1(~ mortality_in + mortality_90 +
+tbl1 <- table1(~ mortality_in + los_icu +
                mech_vent + rrt + vasopressor +
                age_ranges + anchor_age + sex_female + race_group + 
                SOFA_ranges + SOFA + CCI_ranges + CCI +
                is_full_code_admission + is_full_code_discharge +
-               cat_solid + cat_hematological + cat_metastasized +
+               com_hypertension_present + com_heart_failure_present +
+               com_asthma_present + com_copd_present + com_ckd_stages + 
+               group_solid + group_hemat + group_metas +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic +
                loc_lung_bronchus + loc_melanoma + loc_breast +
                loc_endometrial + loc_prostate + loc_kidney +
-               loc_bladder + loc_thyroid + loc_nhl + loc_leukemia +
+               loc_bladder + loc_thyroid + loc_nhl + loc_leukemia
+               | has_cancer,
+               data=df,
+               render.missing=NULL,
+               topclass="Rtable1-grid Rtable1-shade Rtable1-times",
+               render.categorical=render.categorical,
+               render.strat=render.strat
+              )
+
+
+# Convert to flextable
+t1flex(tbl1) %>% save_as_docx(path="results/table1/by_cancer.docx")
+
+# Create Table1 Object
+tbl1 <- table1(~ mortality_in + los_icu +
+               mech_vent + rrt + vasopressor +
+               age_ranges + anchor_age + sex_female + race_group + 
+               SOFA_ranges + SOFA + CCI_ranges + CCI +
+               is_full_code_admission + is_full_code_discharge +
                com_hypertension_present + com_heart_failure_present +
-               com_asthma_present + com_copd_present + com_ckd_stages
+               com_asthma_present + com_copd_present + com_ckd_stages + 
+               group_solid + group_hemat + group_metas +
+               loc_colon_rectal + loc_liver_bd + loc_pancreatic +
+               loc_lung_bronchus + loc_melanoma + loc_breast +
+               loc_endometrial + loc_prostate + loc_kidney +
+               loc_bladder + loc_thyroid + loc_nhl + loc_leukemia
                | source,
                data=df,
                render.missing=NULL,
@@ -170,7 +193,10 @@ tbl1 <- table1(~ mortality_in + mortality_90 +
 
 
 # Convert to flextable
-t1flex(tbl1) %>% save_as_docx(path="results/table1/MIMIC_and_eICU.docx")
+t1flex(tbl1) %>% save_as_docx(path="results/table1/by_database.docx")
+
+
+
 
 
 ###############################

@@ -6,7 +6,7 @@ SELECT DISTINCT
   icu.hadm_id
 
   , CASE WHEN 
-      icd_codes LIKE "%C__%"
+      icd_codes LIKE "%C%"
       AND icd_codes NOT LIKE "%C44%"
       THEN 1
       ELSE NULL

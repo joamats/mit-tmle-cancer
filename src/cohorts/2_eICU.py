@@ -34,7 +34,6 @@ print(f"{len(df4)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({
 df4.to_csv('data/cohorts/eICU_all.csv')
 print(f"Saving full cohort to data/cohorts/eICU_all.csv\n")
 
-
 # Remove non-cancer patients, but we take recurrent stays too
 df5 = df3[df3.has_cancer == 1]
 print(f"\nRemoved {len(df3) - len(df5)} non-cancer stays")

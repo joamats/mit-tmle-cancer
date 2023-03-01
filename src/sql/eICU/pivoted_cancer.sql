@@ -4,7 +4,7 @@ CREATE TABLE `db_name.my_eICU.pivoted_cancer` AS
 SELECT icu.patientunitstayid
 
 , CASE WHEN 
-    icd_codes LIKE "%C__%"
+    icd_codes LIKE "%C%"
     AND icd_codes NOT LIKE "%C44%"
     THEN 1
     ELSE NULL
