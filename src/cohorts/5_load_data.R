@@ -6,7 +6,7 @@ library(forcats)
 
 load_data <- function(cohort){
 
-  file_path <- paste0("data/cohort_", cohort, ".csv")
+  file_path <- paste0("data/cohorts/_", cohort, ".csv")
 
   # Load Data  
   data <- read.csv(file_path, header = TRUE, stringsAsFactors = TRUE)

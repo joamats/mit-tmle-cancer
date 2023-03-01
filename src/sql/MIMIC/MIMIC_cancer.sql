@@ -35,6 +35,7 @@ SELECT DISTINCT
   , pat.anchor_year_group
   , icu.los_hospital
   , icu.los_icu
+  , icu.hospstay_seq
   , icu.first_hosp_stay
   , icu.icustay_seq
   , icu.first_icu_stay
