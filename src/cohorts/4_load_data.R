@@ -25,7 +25,7 @@ load_data <- function(cohort){
   data <- data %>% mutate(ethno_white = ifelse(race_group=="White", 1, 0))
 
   # Replace all NAs in cancer types with 0
-  cancer_list <- c("has_cancer", "cat_solid", "cat_hematological", "cat_metastasized",
+  cancer_list <- c("has_cancer", "group_solid", "group_hematological", "group_metastasized",
                     "loc_colon_rectal", "loc_liver_bd", "loc_pancreatic", "loc_lung_bronchus",
                     "loc_melanoma", "loc_breast", "loc_endometrial", "loc_prostate",
                     "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia")
@@ -36,10 +36,10 @@ load_data <- function(cohort){
   data <- within(data, com_ckd_stages <- factor(com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5)))
   data <- within(data, com_ckd_stages <- fct_collapse(com_ckd_stages,"0"=c("0", "1", "2"), "1"=c("3", "4", "5")))
 
-  # 3 Groups of Cancer
-  data$group_solid <- with(data, ifelse((data$cat_solid == 1) & (data$cat_metastasized != 1) & (data$cat_hematological != 1), 1, 0))
-  data$group_hemat <- with(data, ifelse((data$cat_solid != 1) & (data$cat_metastasized != 1) & (data$cat_hematological == 1), 1, 0))
-  data$group_metas <- with(data, ifelse(                        (data$cat_metastasized == 1)                                , 1, 0))
+  # 3 Groups of Cancer -> Done in SQL now
+  # data$group_solid <- with(data, ifelse((data$cat_solid == 1) & (data$cat_hematological != 1) & (data$cat_metastasized != 1), 1, 0))
+  # data$group_hemat <- with(data, ifelse(                        (data$cat_hematological == 1) & (data$cat_metastasized != 1), 1, 0))
+  # data$group_metas <- with(data, ifelse(                                                        (data$cat_metastasized == 1), 1, 0))
 
   # Return just keeping columns of interest
   data <- data[, c("sex_female", "race_group", "anchor_age",
@@ -48,7 +48,7 @@ load_data <- function(cohort){
                   "ethno_white", 
                   "SOFA", "SOFA_ranges", 
                   "mortality_in", "los_icu",
-                  "has_cancer", "group_solid", "group_hemat", "group_metas",
+                  "has_cancer", "group_solid", "group_hematological", "group_metastasized",
                   "loc_colon_rectal", "loc_liver_bd", "loc_pancreatic", "loc_lung_bronchus",
                   "loc_melanoma", "loc_breast", "loc_endometrial", "loc_prostate",
                   "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia",
@@ -75,9 +75,6 @@ get_merged_datasets <- function() {
   
   write.csv(data_all, "data/cohorts/merged_all.csv")
   write.csv(data_cancer, "data/cohorts/merged_cancer.csv")
-
-  data_list <- list(data_all, data_cancer)
-  return (data_list)
 }
 
 get_merged_datasets()

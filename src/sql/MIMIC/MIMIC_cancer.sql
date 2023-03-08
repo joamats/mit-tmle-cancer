@@ -82,9 +82,9 @@ SELECT DISTINCT
     END AS vasopressor
 
   , cancer.has_cancer
-  , cancer.cat_solid
-  , cancer.cat_metastasized
-  , cancer.cat_hematological
+  , cancer.group_solid
+  , cancer.group_metastasized
+  , cancer.group_hematological
   , cancer.loc_colon_rectal
   , cancer.loc_liver_bd
   , cancer.loc_pancreatic

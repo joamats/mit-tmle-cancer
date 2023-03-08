@@ -5,8 +5,6 @@ library(dplyr)
 library(flextable)
 library(magrittr)
 
-source("src/load_data.R")
-
 df <- read_csv('data/cohorts/merged_all.csv', show_col_types = FALSE)
 
 df$sex_female <- factor(df$sex_female, levels=c(1,0), labels=c("Female", "Male"))
@@ -27,12 +25,12 @@ df$age_ranges[df$anchor_age >= 75 & df$anchor_age <= 84] <- "75 - 84"
 df$age_ranges[df$anchor_age >= 85] <- "85 and higher"
 
 # Cohort of Source
-df <- df %>% mutate(source = ifelse(source == "mimic", "MIMIC", "eICU"))
+df <- df %>% mutate(source = ifelse(source == "mimic_all", "MIMIC", "eICU"))
 
 # Cancer Categories
 df <- df %>% mutate(group_solid = ifelse(group_solid == 1, "Present", "Not Present"))
-df <- df %>% mutate(group_hemat = ifelse(group_hemat == 1, "Present", "Not Present"))
-df <- df %>% mutate(group_metas = ifelse(group_metas == 1, "Present", "Not Present"))
+df <- df %>% mutate(group_hematological = ifelse(group_hematological == 1, "Present", "Not Present"))
+df <- df %>% mutate(group_metastasized = ifelse(group_metastasized == 1, "Present", "Not Present"))
 
 # Cancer Types
 df <- df %>% mutate(loc_colon_rectal = ifelse(loc_colon_rectal == 1, "Present", "Not Present"))
@@ -74,8 +72,8 @@ df <- within(df, com_ckd_stages <- fct_collapse(com_ckd_stages, Absent=c("0", "1
 
 df$cancer_type <- 0
 df$cancer_type[df$group_solid == "Present"] <- 1
-df$cancer_type[df$group_metas == "Present"] <- 2
-df$cancer_type[df$group_hemat == "Present"] <- 3
+df$cancer_type[df$group_metastasized == "Present"] <- 2
+df$cancer_type[df$group_hematological == "Present"] <- 3
 
 df$cancer_type <- factor(df$cancer_type, levels = c(1, 2, 3), 
                         labels = c('Solid cancer', 'Metastasized cancer', 'Hematological cancer'))
@@ -106,8 +104,8 @@ label(df$mortality_in) <- "In-hospital Mortality"
 label(df$has_cancer) <- "Active Cancer"
 
 label(df$group_solid) <- "Solid Cancer"
-label(df$group_hemat) <- "Hematological Cancer"
-label(df$group_metas) <- "Metastasized Cancer"
+label(df$group_hematological) <- "Hematological Cancer"
+label(df$group_metastasized) <- "Metastasized Cancer"
 
 label(df$loc_breast) <- "Breast"
 label(df$loc_prostate) <- "Prostate"
@@ -134,7 +132,6 @@ label(df$is_full_code_discharge) <- "Full Code upon Discharge"
 
 label(df$race_group) <- "Race"
 
-
 render.categorical <- function(x, ...) {
   c("", sapply(stats.apply.rounding(stats.default(x)), function(y) with(y,
   sprintf("%s (%s%%)", prettyNum(FREQ, big.mark=","), PCT))))
@@ -153,7 +150,7 @@ tbl1 <- table1(~ mortality_in + los_icu +
                is_full_code_admission + is_full_code_discharge +
                com_hypertension_present + com_heart_failure_present +
                com_asthma_present + com_copd_present + com_ckd_stages + 
-               group_solid + group_hemat + group_metas +
+               group_solid + group_hematological + group_metastasized +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic +
                loc_lung_bronchus + loc_melanoma + loc_breast +
                loc_endometrial + loc_prostate + loc_kidney +
@@ -178,7 +175,7 @@ tbl1 <- table1(~ mortality_in + los_icu +
                is_full_code_admission + is_full_code_discharge +
                com_hypertension_present + com_heart_failure_present +
                com_asthma_present + com_copd_present + com_ckd_stages + 
-               group_solid + group_hemat + group_metas +
+               group_solid + group_hematological + group_metastasized +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic +
                loc_lung_bronchus + loc_melanoma + loc_breast +
                loc_endometrial + loc_prostate + loc_kidney +
@@ -191,27 +188,22 @@ tbl1 <- table1(~ mortality_in + los_icu +
                render.strat=render.strat
               )
 
-
 # Convert to flextable
 t1flex(tbl1) %>% save_as_docx(path="results/table1/by_database.docx")
-
-
-
-
 
 ###############################
 # Table to check positivity assumption
 ###############################
 
 # Create table1 object for SOFA
-tbl_pos <- table1(~ rrt + mech_vent + vasopressor + race_group 
-                  | mortality_in*cancer_type, 
-                  data=df, 
-                  render.missing=NULL, 
-                  topclass="Rtable1-grid Rtable1-shade Rtable1-times",
-                  render.categorical=render.categorical, 
-                  render.strat=render.strat)
+# tbl_pos <- table1(~ rrt + mech_vent + vasopressor + race_group 
+#                   | mortality_in*cancer_type, 
+#                   data=df, 
+#                   render.missing=NULL, 
+#                   topclass="Rtable1-grid Rtable1-shade Rtable1-times",
+#                   render.categorical=render.categorical, 
+#                   render.strat=render.strat)
 
-# Convert to flextable
-t1flex(tbl_pos) %>% save_as_docx(path="results/table1/Table_posA.docx")
+# # Convert to flextable
+# t1flex(tbl_pos) %>% save_as_docx(path="results/table1/Table_posA.docx")
 
