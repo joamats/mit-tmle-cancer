@@ -1,0 +1,8 @@
+confounder
+anchor_age
+sex_female
+ethno_white
+CCI
+SOFA
+is_full_code_admission
+has_cancer
