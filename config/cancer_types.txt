@@ -1,0 +1,4 @@
+cancer_type
+group_solid
+group_hematological
+group_metastasized

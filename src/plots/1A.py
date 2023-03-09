@@ -17,11 +17,9 @@ sofas = {0: "0 - 3",
 
 yy = range(4, 0, -1)
 
+fig, ax = plt.subplots(1, 3, sharex=True, sharey=False, figsize=(10, 3))                           
 
-fig, ax = plt.subplots(1, 3, sharex=True, sharey=False, figsize=(10, 3))
-                           
-
-fig.suptitle(f"Likelihood of receiving an Intervention as Cancer Patient compared Non-Cancer")
+fig.suptitle(f"Likelihood of receiving an Intervention as Cancer Patient compared to Non-Cancer")
         
 df = pd.read_csv("results/glm/1A.csv")
 
@@ -32,11 +30,6 @@ for i, (t, t_name) in enumerate(treatments.items()):
         row = df[(df.treatment == t) & (df.sofa_min == sofa_min)]
 
         ci = [row['OR'] - row['CI_low'], row['CI_high'] - row['OR']]
-
-        # if y == 6:
-        #     lbl = d
-        # else:
-        #     lbl = None
 
         ax[i].errorbar(x=row['OR'], y=y, xerr=ci, \
                         ecolor="tab:red", color="tab:red", marker='o', \
