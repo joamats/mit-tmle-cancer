@@ -7,8 +7,15 @@ library(magrittr)
 
 df <- read_csv('data/cohorts/merged_all.csv', show_col_types = FALSE)
 
+df$los_icu_dead <- df$los_icu
+df <- df %>% mutate(los_icu_dead = ifelse(mortality_in == 1, los_icu_dead, NA))
+
+df$los_icu_survived <- df$los_icu
+df <- df %>% mutate(los_icu_survived = ifelse(mortality_in == 0, los_icu_survived, NA))
+
 df$sex_female <- factor(df$sex_female, levels=c(1,0), labels=c("Female", "Male"))
 df$mortality_in <- factor(df$mortality_in, levels=c(1,0), labels=c("Died", "Survived"))
+df$has_cancer <- factor(df$has_cancer, levels=c(1,0), labels=c("Cancer", "Non-Cancer"))
 
 df$mech_vent <- factor(df$mech_vent, levels=c(1,0), labels=c("Received", "Not received"))
 df$rrt <- factor(df$rrt, levels=c(1,0), labels=c("Received", "Did not receive"))
@@ -67,8 +74,8 @@ df$com_copd_present <- factor(df$com_copd_present, levels = c(0, 1),
 df$com_asthma_present <- factor(df$com_asthma_present, levels = c(0, 1), 
                         labels = c('Asthma absent', 'Asthma present'))
 
-df <- within(df, com_ckd_stages <- factor(com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5)))
-df <- within(df, com_ckd_stages <- fct_collapse(com_ckd_stages, Absent=c("0", "1", "2"), Present=c("3", "4", "5")))
+df$com_ckd_stages <- factor(df$com_ckd_stages, levels = c(0, 1),
+                        labels = c("CKD Absent", "CKD Present"))
 
 df$cancer_type <- 0
 df$cancer_type[df$group_solid == "Present"] <- 1
@@ -89,8 +96,12 @@ label(df$sex_female) <- "Sex"
 label(df$SOFA) <- "SOFA continuous"
 label(df$SOFA_ranges) <- "SOFA Ranges"
 
-label(df$los_icu) <- "Length of stay"
-units(df$los_icu) <- "days"
+label(df$los_icu_dead) <- "Length of stay if died"
+units(df$los_icu_dead) <- "days"
+label(df$los_icu_survived) <- "Length of stay if survived"
+units(df$los_icu_survived) <- "days"
+
+label(df$has_cancer) <- "Cancer Presence"
 
 label(df$CCI) <- "Charlson Comorbidity Index continuous (CCI)"
 label(df$CCI_ranges) <- "CCI Ranges"
@@ -143,7 +154,7 @@ render.strat <- function (label, n, ...) {
 }
 
 # Create Table1 Object
-tbl1 <- table1(~ mortality_in + los_icu +
+tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                mech_vent + rrt + vasopressor +
                age_ranges + anchor_age + sex_female + race_group + 
                SOFA_ranges + SOFA + CCI_ranges + CCI +
@@ -168,7 +179,7 @@ tbl1 <- table1(~ mortality_in + los_icu +
 t1flex(tbl1) %>% save_as_docx(path="results/table1/by_cancer.docx")
 
 # Create Table1 Object
-tbl1 <- table1(~ mortality_in + los_icu +
+tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                mech_vent + rrt + vasopressor +
                age_ranges + anchor_age + sex_female + race_group + 
                SOFA_ranges + SOFA + CCI_ranges + CCI +
