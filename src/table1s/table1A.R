@@ -176,7 +176,7 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
 
 
 # Convert to flextable
-t1flex(tbl1) %>% save_as_docx(path="results/table1/by_cancer.docx")
+t1flex(tbl1) %>% save_as_docx(path="results/table1/1A_by_cancer.docx")
 
 # Create Table1 Object
 tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
@@ -186,6 +186,7 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                is_full_code_admission + is_full_code_discharge +
                com_hypertension_present + com_heart_failure_present +
                com_asthma_present + com_copd_present + com_ckd_stages + 
+               has_cancer +
                group_solid + group_hematological + group_metastasized +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic +
                loc_lung_bronchus + loc_melanoma + loc_breast +
@@ -200,7 +201,7 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
               )
 
 # Convert to flextable
-t1flex(tbl1) %>% save_as_docx(path="results/table1/by_database.docx")
+t1flex(tbl1) %>% save_as_docx(path="results/table1/1A_by_database.docx")
 
 ###############################
 # Table to check positivity assumption

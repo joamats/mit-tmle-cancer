@@ -12,7 +12,9 @@ load_data <- function(cohort){
   data <- read.csv(file_path, header = TRUE, stringsAsFactors = TRUE)
 
   if (file_path == "data/cohorts/eICU_all.csv" | 
-      file_path == "data/cohorts/eICU_cancer.csv") {
+      file_path == "data/cohorts/eICU_cancer.csv" |
+      file_path == "data/cohorts/eICU_all_surviving.csv" |
+      file_path == "data/cohorts/eICU_cancer_surviving.csv") {
       
       data <- data %>% mutate(anchor_age = ifelse(anchor_age == "> 89", 91, strtoi(anchor_age)))
     
@@ -24,22 +26,19 @@ load_data <- function(cohort){
   data$ethno_white <- data$race_group 
   data <- data %>% mutate(ethno_white = ifelse(race_group=="White", 1, 0))
 
-  # Replace all NAs in cancer types with 0
+  # Replace all NAs in cancer types and comorbidities with 0
   cancer_list <- c("has_cancer", "group_solid", "group_hematological", "group_metastasized",
                     "loc_colon_rectal", "loc_liver_bd", "loc_pancreatic", "loc_lung_bronchus",
                     "loc_melanoma", "loc_breast", "loc_endometrial", "loc_prostate",
-                    "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia")
+                    "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia",
+                    "com_copd_present", "com_asthma_present", "com_heart_failure_present",
+                    "com_hypertension_present")
 
   data <- data %>% mutate_at(cancer_list, ~ replace_na(., 0))
 
   # Encode CKD stages as binary
   data <- within(data, com_ckd_stages <- factor(com_ckd_stages, levels = c(0, 1, 2, 3, 4, 5)))
   data <- within(data, com_ckd_stages <- fct_collapse(com_ckd_stages,"0"=c("0", "1", "2"), "1"=c("3", "4", "5")))
-
-  # 3 Groups of Cancer -> Done in SQL now
-  # data$group_solid <- with(data, ifelse((data$cat_solid == 1) & (data$cat_hematological != 1) & (data$cat_metastasized != 1), 1, 0))
-  # data$group_hemat <- with(data, ifelse(                        (data$cat_hematological == 1) & (data$cat_metastasized != 1), 1, 0))
-  # data$group_metas <- with(data, ifelse(                                                        (data$cat_metastasized == 1), 1, 0))
 
   # Return just keeping columns of interest
   data <- data[, c("sex_female", "race_group", "anchor_age",
@@ -56,7 +55,6 @@ load_data <- function(cohort){
                   "com_copd_present", "com_ckd_stages",
                   "is_full_code_admission", "is_full_code_discharge")
              ]
-    write.csv(data, file_path)
     return(data)
 
 }
@@ -65,16 +63,24 @@ get_merged_datasets <- function() {
 
   mimic_all <- load_data("MIMIC_all")
   eicu_all <- load_data("eICU_all")
+  mimic_all_surviving <- load_data("MIMIC_all_surviving")
+  eicu_all_surviving <- load_data("eICU_all_surviving")
 
   mimic_cancer <- load_data("MIMIC_cancer")
   eicu_cancer <- load_data("eICU_cancer")
+  mimic_cancer_surviving <- load_data("MIMIC_cancer_surviving")
+  eicu_cancer_surviving <- load_data("eICU_cancer_surviving")
 
   # merge 2 cohorts
   data_all <- combine(mimic_all, eicu_all)
   data_cancer <- combine(mimic_cancer, eicu_cancer)
+  data_all_surviving <- combine(mimic_all_surviving, eicu_all_surviving)
+  data_cancer_surviving <- combine(mimic_cancer_surviving, eicu_cancer_surviving)
   
   write.csv(data_all, "data/cohorts/merged_all.csv")
   write.csv(data_cancer, "data/cohorts/merged_cancer.csv")
+  write.csv(data_all_surviving, "data/cohorts/merged_all_surviving.csv")
+  write.csv(data_cancer_surviving, "data/cohorts/merged_cancer_surviving.csv")
 }
 
 get_merged_datasets()

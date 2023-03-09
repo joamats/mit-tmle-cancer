@@ -36,6 +36,15 @@ print(f"{len(df4)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({
 df4.to_csv('data/cohorts/MIMIC_all.csv')
 print(f"Saving full cohort to data/cohorts/MIMIC_all.csv\n")
 
+# Remove patients who died in the ICU
+df4s = df4[df4.mortality_in == 0]
+print(f"Removed {len(df4) - len(df4s)} non-surviving stays")
+demo4s = print_demo(get_demography(df4s))
+print(f"{len(df4s)} stays with sepsis, LoS > 24h, non-recurrent, adult, surviving stays \n({demo4s})\n")
+
+# Save full surviving cohort
+df4s.to_csv('data/cohorts/MIMIC_all_surviving.csv')
+print(f"Saving full cohort to data/cohorts/MIMIC_all_surviving.csv\n")
 
 # Remove non-cancer patients, but we take recurrent stays too
 df5 = df3[df3.has_cancer == 1]
@@ -51,6 +60,15 @@ demo6 = print_demo(get_demography(df6))
 print(f"{len(df6)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({demo6})\n")
 
 # Save cancer cohort
-df5.to_csv('data/cohorts/MIMIC_cancer.csv')
+df6.to_csv('data/cohorts/MIMIC_cancer.csv')
 print(f"Saving cancer cohort to data/cohorts/MIMIC_cancer.csv\n")
 
+# Remove cancer patients who died in the ICU
+df6s = df6[df6.mortality_in == 0]
+print(f"Removed {len(df6) - len(df6s)} non-surviving stays")
+demo6s = print_demo(get_demography(df6s))
+print(f"{len(df6s)} stays with sepsis, LoS > 24h, non-recurrent, adult, surviving stays \n({demo6s})\n")
+
+# Save full surviving cohort
+df6s.to_csv('data/cohorts/MIMIC_cancer_surviving.csv')
+print(f"Saving full cohort to data/cohorts/MIMIC_cancer_surviving.csv\n")
