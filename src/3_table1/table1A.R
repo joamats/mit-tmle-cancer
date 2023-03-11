@@ -203,19 +203,5 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
 # Convert to flextable
 t1flex(tbl1) %>% save_as_docx(path="results/table1/1A_by_database.docx")
 
-###############################
-# Table to check positivity assumption
-###############################
 
-# Create table1 object for SOFA
-# tbl_pos <- table1(~ rrt + mech_vent + vasopressor + race_group 
-#                   | mortality_in*cancer_type, 
-#                   data=df, 
-#                   render.missing=NULL, 
-#                   topclass="Rtable1-grid Rtable1-shade Rtable1-times",
-#                   render.categorical=render.categorical, 
-#                   render.strat=render.strat)
-
-# # Convert to flextable
-# t1flex(tbl_pos) %>% save_as_docx(path="results/table1/Table_posA.docx")
 

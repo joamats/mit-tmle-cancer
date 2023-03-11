@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('TKAgg')
 
 df_raw = pd.read_csv("results/tmle/SAs/2A_SA.csv")
+df[~((df.sofa_start == 0) & (df.sofa_end == 24))]
 
 # Transform into percentages
 df_raw.psi = df_raw.psi * 100

@@ -7,6 +7,7 @@ matplotlib.use('TKAgg')
 
 
 df = pd.read_csv("results/tmle/3A.csv")
+df = df[~((df.sofa_start == 0) & (df.sofa_end == 24))]
 
 t_dict = dict(zip(["mech_vent", "rrt", "vasopressor"],
                 ["Mechanical Ventilation", "RRT", "Vasopressor(s)"]))
