@@ -16,8 +16,6 @@ load_data <- function(cohort){
       file_path == "data/cohorts/eICU_all_surviving.csv" |
       file_path == "data/cohorts/eICU_cancer_surviving.csv") {
       
-      data <- data %>% mutate(anchor_age = ifelse(anchor_age == "> 89", 91, strtoi(anchor_age)))
-    
       # create empty columns, as this info is missing in eICU
       data['mortality_90'] <- NA
 

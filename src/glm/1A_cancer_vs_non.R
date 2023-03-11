@@ -14,10 +14,11 @@ run_glm <- function(df, fla, treatment, sofa_min, sofa_max) {
 # Main
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
-confounders <- read.delim("config/confounders.txt")
+confounders <- read.delim("config/glm1A_vars.txt")
 
 # Read Data for this database and cohort
 df <- read.csv(paste0("data/cohorts/merged_all.csv"))
+print(nrow(df))
 
 results_df <- data.frame(matrix(ncol=8, nrow=0))
 

@@ -14,7 +14,7 @@ run_glm <- function(df, fla, treatment, cancer_type) {
 
 # Main
 treatments <- read.delim("config/treatments.txt")
-confounders <- read.delim("config/confounders_types.txt")
+confounders <- read.delim("config/glm1B_vars.txt")
 cancer_types <- read.delim("config/cancer_types.txt")
 
 # Read Data for this database and cohort

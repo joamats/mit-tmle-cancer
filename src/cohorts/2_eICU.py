@@ -3,7 +3,7 @@ from utils import get_demography, print_demo
 
 # eICU
 df1 = pd.read_csv("data/eICU.csv")
-df1.anchor_age = df1.anchor_age.apply(lambda x: 91.4 if x == "> 89" else x).astype(float)
+df1.anchor_age = df1.anchor_age.apply(lambda x: 91 if x == "> 89" else x).astype(float)
 print(f"{200859} stays in the ICU")
 
 # Get the counts for the removal of non-sepsis stays
