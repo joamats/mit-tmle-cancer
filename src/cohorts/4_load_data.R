@@ -61,24 +61,16 @@ get_merged_datasets <- function() {
 
   mimic_all <- load_data("MIMIC_all")
   eicu_all <- load_data("eICU_all")
-  mimic_all_surviving <- load_data("MIMIC_all_surviving")
-  eicu_all_surviving <- load_data("eICU_all_surviving")
 
   mimic_cancer <- load_data("MIMIC_cancer")
   eicu_cancer <- load_data("eICU_cancer")
-  mimic_cancer_surviving <- load_data("MIMIC_cancer_surviving")
-  eicu_cancer_surviving <- load_data("eICU_cancer_surviving")
 
   # merge 2 cohorts
   data_all <- combine(mimic_all, eicu_all)
   data_cancer <- combine(mimic_cancer, eicu_cancer)
-  data_all_surviving <- combine(mimic_all_surviving, eicu_all_surviving)
-  data_cancer_surviving <- combine(mimic_cancer_surviving, eicu_cancer_surviving)
-  
+
   write.csv(data_all, "data/cohorts/merged_all.csv")
   write.csv(data_cancer, "data/cohorts/merged_cancer.csv")
-  write.csv(data_all_surviving, "data/cohorts/merged_all_surviving.csv")
-  write.csv(data_cancer_surviving, "data/cohorts/merged_cancer_surviving.csv")
 }
 
 get_merged_datasets()

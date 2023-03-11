@@ -39,7 +39,7 @@ run_tmle <- function(data, treatment, confounders, outcome,
 cohorts <- c("all", "cancer")
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
-confounders <- read.delim("config/tmle2A_vars.txt")
+confounders <- read.delim("config/tmle2_vars.txt")
 outcome <- read.delim("config/tmle2_out.txt")$outcome
 
 # Dataframe to hold results
