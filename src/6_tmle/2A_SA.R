@@ -1,9 +1,8 @@
-source("src/tmle/utils.R")
+source("src/6_tmle/utils.R")
 
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome,
-                     cohort, sofa_min, sofa_max, results_df) {
-
+                     cohort, sofa_min, sofa_max, sens, results_df) {
 
     W <- data[, confounders]
     A <- data[, treatment]
@@ -26,6 +25,7 @@ run_tmle <- function(data, treatment, confounders, outcome,
                                             cohort,
                                             sofa_min,
                                             sofa_max,
+                                            sens,
                                             log$estimates$ATE$psi,
                                             log$estimates$ATE$CI[1],
                                             log$estimates$ATE$CI[2],
@@ -43,12 +43,13 @@ confounders <- read.delim("config/tmle2_vars.txt")
 outcome <- read.delim("config/tmle2_out.txt")$outcome
 
 # Dataframe to hold results
-results_df <- data.frame(matrix(ncol=9, nrow=0))
+results_df <- data.frame(matrix(ncol=10, nrow=0))
 colnames(results_df) <- c(
                           "treatment",
                           "cohort",
                           "sofa_start",
                           "sofa_end",
+                          "sens",
                           "psi",
                           "i_ci",
                           "s_ci",
@@ -85,13 +86,34 @@ for (c in cohorts) {
             # Stratify by SOFA
             subset_data <- subset(data, SOFA <= sofa_max & SOFA >= sofa_min)
 
-            # Run TMLE
-            results_df <- run_tmle(subset_data, treatment, model_confounders, outcome,
-                                   c, sofa_min, sofa_max, results_df)
+                for (s in 1:nrow(treatments)) {
 
-            # Save Results
-            write.csv(results_df, "results/tmle/2A.csv")
+                    sens <- treatments$treatment[s]
 
+                    print(paste0("Sensitivity Analysis for: ", sens))
+
+                    # Remove patients with key comorbidities
+                    if (sens == "mech_vent") {
+                        sub_subset_data <- subset(subset_data,
+                                                  com_asthma_present != 1 &
+                                                  com_copd_present != 1)
+                    } else if(sens == "rrt") {
+                        sub_subset_data <- subset(subset_data,
+                                                  com_ckd_stages != 1)
+ 
+                    } else if(sens == "vasopressor") {
+                        sub_subset_data <- subset(subset_data,
+                                                  com_heart_failure_present != 1 &
+                                                  com_hypertension_present != 1)                        
+                    }
+
+                    # Run TMLE
+                    results_df <- run_tmle(sub_subset_data, treatment, model_confounders, outcome,
+                                           c, sofa_min, sofa_max, sens, results_df)
+
+                    # Save Results
+                    write.csv(results_df, "results/tmle/SAs/2A_SA.csv")
+                }
         }           
     }
 }

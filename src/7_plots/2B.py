@@ -30,7 +30,7 @@ for i, t in enumerate(t_dict.keys()):
                     yerr=((df_temp1.psi- df_temp1.i_ci), (df_temp1.s_ci-df_temp1.psi)),
                     fmt='-o', c='tab:red', ecolor='tab:red',
                     elinewidth=.4, linewidth=1.5, capsize=4, markeredgewidth=.4,
-                    label="Cancer\nOnly")
+                    label="Cancer\nPatients")
 
     axes[i].axhline(y=0, xmin=0, xmax=1, c="black", linewidth=.7, linestyle='--')
     axes[i].set_ylim([-30, 30])
