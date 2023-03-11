@@ -36,7 +36,6 @@ run_tmle <- function(data, treatment, confounders, outcome,
 }
 
 # Main
-cohorts <- c("all", "cancer")
 sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
 confounders <- read.delim("config/tmle2A_vars.txt")
@@ -55,12 +54,11 @@ colnames(results_df) <- c(
                           "pvalue",
                           "n")
 
-
 for (c in cohorts) {
     print(paste0("Cohort: ", c))
 
     # Read Data for this database and cohort
-    data <- read.csv(paste0("data/cohorts/merged_", c, ".csv"))
+    data <- read.csv(paste0("data/cohorts/merged_cancer", c, ".csv"))
 
     # Non-Cancer Patients
     if (c == "all") {
@@ -90,7 +88,7 @@ for (c in cohorts) {
                                    c, sofa_min, sofa_max, results_df)
 
             # Save Results
-            write.csv(results_df, "results/tmle/2A.csv")
+            write.csv(results_df, "results/tmle/2B.csv")
 
         }           
     }
