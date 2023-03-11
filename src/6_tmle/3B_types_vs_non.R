@@ -1,4 +1,4 @@
-source("src/tmle/utils.R")
+source("src/6_tmle/utils.R")
 
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome,
@@ -8,17 +8,30 @@ run_tmle <- function(data, treatment, confounders, outcome,
     A <- data[, treatment]
     Y <- data[, outcome]
 
+    # Rescale output
+    min.Y <- min(Y)
+    max.Y <- max(Y)
+
+    Y_transf <- (Y-min.Y)/(max.Y-min.Y)
+
     result <- tmle(
-                Y = Y,
+                Y = Y_transf,
                 A = A,
                 W = W,
-                family = "binomial", 
+                family = "gaussian", 
                 gbound = c(0.05, 0.95),
                 g.SL.library = c("SL.glm"),
                 Q.SL.library = c("SL.glm"),
                 )
 
-    log <- summary(result)     
+    log <- summary(result)   
+
+    # Rescale back to original scale
+    # Check with Andre -> here https://ehsanx.github.io/TMLEworkshop/pre-packaged-software.html
+    # They don't sum min.Y back
+
+    log$estimates$ATE$psi <- log$estimates$ATE$psi * (max.Y-min.Y) + min.Y
+    log$estimates$ATE$CI <- log$estimates$ATE$CI * (max.Y-min.Y) + min.Y  
 
     results_df[nrow(results_df) + 1,] <- c(
                                             treatment,
@@ -34,10 +47,10 @@ run_tmle <- function(data, treatment, confounders, outcome,
 }
 
 # Main
-cancer_types <- read.delim("config/cancer_types.txt")
+sofa_ranges <- read.csv("config/SOFA_ranges.csv")
 treatments <- read.delim("config/treatments.txt")
-confounders <- read.delim("config/tmle2_vars.txt")
-outcome <- read.delim("config/tmle2_out.txt")$outcome
+confounders <- read.delim("config/tmle3_vars.txt")
+outcome <- read.delim("config/tmle3_out.txt")$outcome
 
 # Dataframe to hold results
 results_df <- data.frame(matrix(ncol=8, nrow=0))
@@ -76,7 +89,7 @@ for (j in 1:nrow(treatments)) {
                                 c, cancer_type, results_df)
 
         # Save Results
-        write.csv(results_df, "results/tmle/2B.csv")
+        write.csv(results_df, "results/tmle/3B.csv")
 
     }           
 }
