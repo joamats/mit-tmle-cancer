@@ -16,5 +16,5 @@ read_confounders <- function(j, treatments, confounders) {
     }
 
     fla <- substr(vars, 1, nchar(vars)-3)
-    return(as.formula(fla))
+    return(fla)
 }

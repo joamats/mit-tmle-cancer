@@ -12,8 +12,8 @@ treatments = {"mech_vent": "Mechanical Ventilation",
 sofas = {0: "0 - 3",
          4: "4 - 6",
          7: "7 - 10",
-         11: "11 >"}
-
+         11: "10 >"}
+ 
 
 yy = range(4, 0, -1)
 

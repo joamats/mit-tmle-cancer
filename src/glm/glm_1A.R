@@ -36,7 +36,7 @@ for (i in 1:nrow(sofa_ranges)) {
         subset_df <- subset(df, SOFA <= sofa_max & SOFA >= sofa_min)
 
         # Get formula with confounders and treatment
-        formula <- read_confounders(j, treatments, confounders) 
+        formula <- as.formula(read_confounders(j, treatments, confounders) )
         print(paste0("Treatment: ", as.character(formula)[2]))
         print(paste0("Adjusted for: ", as.character(formula)[3]))
 
