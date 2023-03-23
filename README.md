@@ -28,20 +28,16 @@ After getting credentialing at PhysioNet, you must sign the data use agreement a
 Having all the necessary tables for the cohort generation query in your project, run the following command to fetch the data as a dataframe that will be saved as CSV in your local project. Make sure you have all required files and folders.
 
 ```shell
-python3 src/get_data.py --sql "src/sql/MIMIC/MIMIC_cancer.sql" --destination "data/MIMIC.csv"
+python3 src/2_cohorts/1_get_data.py --sql "src/1_sql/MIMIC/MIMIC_cancer.sql" --destination "data/MIMIC.csv"
 ```
-
-This will create the file `data/sepsis_MIMIC/sespsis_all.csv`
 
 #### eICU-CRD
 
 The rationale for eICU-CRD is similar. Run the following commands:
 
 ```sh
-python3 src/get_data.py --sql "src/sql/eICU/eICU_cancer.sql" --destination "data/eICU.csv"
+python3 src/2_cohorts/1_get_data.py --sql "src/1_sql/eICU/eICU_cancer.sql" --destination "data/eICU.csv"
 ```
-
-This creates the file `data/sepsis_eICU/sepsis_all.csv`
 
 ### 2. Get the Cohorts
 

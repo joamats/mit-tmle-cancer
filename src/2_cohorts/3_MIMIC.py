@@ -26,8 +26,7 @@ demo3 = print_demo(get_demography(df3))
 print(f"{len(df3)} stays with sepsis, LoS > 24h, adult patient \n({demo3})\n")
 
 # Remove recurrent stays
-df4 = df3.sort_values(by=["subject_id", "hospstay_seq", "icustay_seq"], ascending=True).groupby(
-    'subject_id').apply(lambda group: group.iloc[0, 1:])
+df4 = df3.sort_values(by=["subject_id", "hadm_id", "icustay_seq"], ascending=True).groupby('subject_id').apply(lambda group: group.iloc[0, 1:])
 print(f"Removed {len(df3) - len(df4)} recurrent stays")
 demo4 = print_demo(get_demography(df4))
 print(f"{len(df4)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({demo4})\n")
@@ -53,7 +52,7 @@ demo5 = print_demo(get_demography(df5))
 print(f"{len(df5)} stays with sepsis, LoS > 24h, adult stays, cancer \n({demo5})\n")
 
 # Remove recurrent stays
-df6 = df5.sort_values(by=["subject_id", "hospstay_seq", "icustay_seq"], ascending=True).groupby(
+df6 = df5.sort_values(by=["subject_id", "hadm_id", "icustay_seq"], ascending=True).groupby(
     'subject_id').apply(lambda group: group.iloc[0, 1:])
 print(f"Removed {len(df5) - len(df6)} recurrent stays")
 demo6 = print_demo(get_demography(df6))

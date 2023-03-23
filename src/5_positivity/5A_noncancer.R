@@ -4,27 +4,25 @@ library(dplyr)
 library(flextable)
 library(magrittr)
 
-df <- read_csv('data/cohorts/merged_cancer.csv', show_col_types = FALSE)
+df <- read_csv('data/cohorts/merged_all.csv', show_col_types = FALSE)
+
+df <- subset(df, has_cancer != 1)
 
 df$mortality_in <- factor(df$mortality_in, levels=c(1,0), labels=c("Died", "Survived"))
 
 df$mech_vent <- factor(df$mech_vent, levels=c(1,0), labels=c("Received", "Not received"))
-df$rrt <- factor(df$rrt, levels=c(1,0), labels=c("Received", "Did not receive"))
+df$rrt <- factor(df$rrt, levels=c(1,0), labels=c("Received", "Not received"))
 df$vasopressor <- factor(df$vasopressor, levels=c(1,0), labels=c("Received", "Not received"))
 
-sub_df <- df[, c("group_solid", "group_hematological", "group_metastasized")]
+# Get data into factor format
+df$SOFA_ranges <- factor(df$SOFA_ranges, levels = c('0-3', '4-6', '7-10', '>10'),
+                                         labels = c('0 - 3', '4 - 6','7 - 10', '10 >'))
 
-df$cancer_type <- names(sub_df)[max.col(sub_df)]
-df$cancer_type <- factor(df$cancer_type,
-                         levels=c('group_solid', 'group_hematological', 'group_metastasized'),
-                         labels=c('Solid', 'Hematological', 'Metastasized'))
+label(df$SOFA_ranges) <- "SOFA Ranges"
 
-label(df$cancer_type) <- "Cancer Type"
-
-label(df$mech_vent) <- "Mechanic Ventilation"
+label(df$mech_vent) <- "Mechanical Ventilation"
 label(df$rrt) <- "Renal Replacement Therapy"
 label(df$vasopressor) <- "Vasopressor(s)"
-
 
 label(df$mortality_in) <- "In-hospital Mortality"
 
@@ -39,7 +37,7 @@ render.strat <- function (label, n, ...) {
 }
 
 tbl_pos <- table1(~ mech_vent + rrt + vasopressor 
-                  | mortality_in*cancer_type, 
+                  | SOFA_ranges * mortality_in, 
                   data=df, 
                   render.missing=NULL, 
                   topclass="Rtable1-grid Rtable1-shade Rtable1-times",
@@ -47,5 +45,4 @@ tbl_pos <- table1(~ mech_vent + rrt + vasopressor
                   render.strat=render.strat)
 
 # Convert to flextable
-t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/B.docx")
-
+t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/5A_noncancer.docx")

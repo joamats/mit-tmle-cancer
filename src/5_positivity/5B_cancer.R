@@ -4,9 +4,7 @@ library(dplyr)
 library(flextable)
 library(magrittr)
 
-df <- read_csv('data/cohorts/merged_all.csv', show_col_types = FALSE)
-
-df <- subset(df, has_cancer != 1)
+df <- read_csv('data/cohorts/merged_cancer.csv', show_col_types = FALSE)
 
 df$mortality_in <- factor(df$mortality_in, levels=c(1,0), labels=c("Died", "Survived"))
 
@@ -45,4 +43,4 @@ tbl_pos <- table1(~ mech_vent + rrt + vasopressor
                   render.strat=render.strat)
 
 # Convert to flextable
-t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/A_non.docx")
+t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/5B_cancer.docx")
