@@ -41,6 +41,7 @@ render.strat <- function (label, n, ...) {
 tbl_pos <- table1(~ mech_vent + rrt + vasopressor 
                   | mortality_in*cancer_type, 
                   data=df, 
+                  row_wise = TRUE,
                   render.missing=NULL, 
                   topclass="Rtable1-grid Rtable1-shade Rtable1-times",
                   render.categorical=render.categorical, 

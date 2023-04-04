@@ -79,6 +79,32 @@ SELECT DISTINCT
     ELSE NULL
   END AS diabetes_types
 
+-- connective tissue disease as defined in Elixhauser comorbidity score
+  , CASE 
+      WHEN icd_codes LIKE "%L94.0" THEN 1
+      WHEN icd_codes LIKE "%L94.1" THEN 1
+      WHEN icd_codes LIKE "%L94.3%" THEN 1
+      WHEN icd_codes LIKE "%M05%" THEN 1
+      WHEN icd_codes LIKE "%M06%" THEN 1
+      WHEN icd_codes LIKE "%M08%" THEN 1
+      WHEN icd_codes LIKE "%M12.0" THEN 1
+      WHEN icd_codes LIKE "%M12.3" THEN 1
+      WHEN icd_codes LIKE "%M30%" THEN 1
+      WHEN icd_codes LIKE "%M31.0" THEN 1
+      WHEN icd_codes LIKE "%M31.1" THEN 1
+      WHEN icd_codes LIKE "%M31.2" THEN 1
+      WHEN icd_codes LIKE "%M31.3" THEN 1
+      WHEN icd_codes LIKE "%M32%" THEN 1
+      WHEN icd_codes LIKE "%M33%" THEN 1
+      WHEN icd_codes LIKE "%M34%" THEN 1
+      WHEN icd_codes LIKE "%M35%" THEN 1
+      WHEN icd_codes LIKE "%M45%" THEN 1
+      WHEN icd_codes LIKE "%M46.1" THEN 1
+      WHEN icd_codes LIKE "%M46.8" THEN 1
+      WHEN icd_codes LIKE "%M46.9" THEN 1
+    ELSE NULL
+  END AS connective_disease
+
 FROM `physionet-data.mimiciv_derived.icustay_detail` AS icu
 
 LEFT JOIN(

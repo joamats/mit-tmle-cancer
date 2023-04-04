@@ -34,6 +34,7 @@ render.strat <- function (label, n, ...) {
           label, prettyNum(n, big.mark=","))
 }
 
+# Both datasets
 tbl_pos <- table1(~ mech_vent + rrt + vasopressor 
                   | SOFA_ranges * mortality_in, 
                   data=df, 
@@ -44,3 +45,27 @@ tbl_pos <- table1(~ mech_vent + rrt + vasopressor
 
 # Convert to flextable
 t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/5B_cancer.docx")
+
+# MIMIC only
+tbl_pos <- table1(~ mech_vent + rrt + vasopressor 
+                  | SOFA_ranges * mortality_in, 
+                  data=subset(df,source=="mimic_cancer"), 
+                  render.missing=NULL, 
+                  topclass="Rtable1-grid Rtable1-shade Rtable1-times",
+                  render.categorical=render.categorical, 
+                  render.strat=render.strat)
+
+# Convert to flextable
+t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/5B_cancer_MIMIC.docx")
+
+# eICU only
+tbl_pos <- table1(~ mech_vent + rrt + vasopressor 
+                  | SOFA_ranges * mortality_in, 
+                  data=subset(df, source=="eicu_cancer"), 
+                  render.missing=NULL, 
+                  topclass="Rtable1-grid Rtable1-shade Rtable1-times",
+                  render.categorical=render.categorical, 
+                  render.strat=render.strat)
+
+# Convert to flextable
+t1flex(tbl_pos) %>% save_as_docx(path="results/positivity/5B_cancer_eICU.docx")

@@ -36,9 +36,10 @@ render.strat <- function (label, n, ...) {
           label, prettyNum(n, big.mark=","))
 }
 
+# Both datasets
 tbl_pos <- table1(~ mech_vent + rrt + vasopressor 
                   | SOFA_ranges * mortality_in, 
-                  data=df, 
+                  data=df,
                   render.missing=NULL, 
                   topclass="Rtable1-grid Rtable1-shade Rtable1-times",
                   render.categorical=render.categorical, 
