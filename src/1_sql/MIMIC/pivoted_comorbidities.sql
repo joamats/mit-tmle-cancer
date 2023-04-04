@@ -105,6 +105,36 @@ SELECT DISTINCT
     ELSE NULL
   END AS connective_disease
 
+-- get top sources of infection
+  , CASE 
+      WHEN icd_codes LIKE "%J09%" THEN "pneumonia"
+      WHEN icd_codes LIKE "%J1%" THEN "pneumonia"
+      WHEN icd_codes LIKE "%J85%" THEN "pneumonia"
+      WHEN icd_codes LIKE "%J86%" THEN "pneumonia"
+
+      WHEN icd_codes LIKE "%N300%" THEN "uti"
+      WHEN icd_codes LIKE "%N390%" THEN "uti"
+
+      WHEN icd_codes LIKE "%K81%" THEN "biliary"
+      WHEN icd_codes LIKE "%K830%" THEN "biliary"
+      WHEN icd_codes LIKE "%K851%" THEN "biliary"
+      
+      WHEN icd_codes LIKE "%L0%" THEN "skin"
+      
+      WHEN icd_codes LIKE "%A41.9%" THEN "unknown source"       
+      
+      ELSE NULL
+  END AS infection_source
+
+-- get top iatrogenic complications
+  , CASE 
+      WHEN icd_codes LIKE "%T80211%" THEN "central venous catheter"
+      WHEN icd_codes LIKE "%T83511%" THEN "urethral catheter"
+      WHEN icd_codes LIKE "%T814%" THEN "post surgical"
+      WHEN icd_codes LIKE "%J95851%" THEN "ventilator associated pneumonia"
+      ELSE NULL
+  END AS infection_hospital
+
 FROM `physionet-data.mimiciv_derived.icustay_detail` AS icu
 
 LEFT JOIN(
@@ -114,3 +144,21 @@ LEFT JOIN(
 )
 AS diagnoses_icd10 
 ON diagnoses_icd10.hadm_id = icu.hadm_id
+
+LEFT JOIN(
+  SELECT hadm_id, STRING_AGG(icd_code) AS icd_codes_source
+  FROM `physionet-data.mimiciv_hosp.diagnoses_icd`
+  WHERE seq_num <= 3
+  GROUP BY hadm_id
+)
+AS infection_source 
+ON infection_source.hadm_id = icu.hadm_id
+
+LEFT JOIN(
+  SELECT hadm_id, STRING_AGG(icd_code) AS icd_codes_hospital
+  FROM `physionet-data.mimiciv_hosp.diagnoses_icd`
+  GROUP BY hadm_id
+)
+AS infection_hospital 
+ON infection_hospital.hadm_id = icu.hadm_id
+
