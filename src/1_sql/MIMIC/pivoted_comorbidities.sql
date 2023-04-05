@@ -2,7 +2,10 @@ DROP TABLE IF EXISTS `db_name.my_MIMIC.pivoted_comorbidities`;
 CREATE TABLE `db_name.my_MIMIC.pivoted_comorbidities` AS
 
 SELECT DISTINCT
-    icu.hadm_id
+    icu.hadm_id,
+    adm_dx.pneumonia, adm_dx.uti, adm_dx.biliary, adm_dx.skin,
+    adm_dx.clabsi, adm_dx.cauti, adm_dx.ssi, adm_dx.vap
+
 
   , CASE WHEN (
        icd_codes LIKE "%I10%"
@@ -105,36 +108,6 @@ SELECT DISTINCT
     ELSE NULL
   END AS connective_disease
 
--- get top sources of infection
-  , CASE 
-      WHEN icd_codes LIKE "%J09%" THEN "pneumonia"
-      WHEN icd_codes LIKE "%J1%" THEN "pneumonia"
-      WHEN icd_codes LIKE "%J85%" THEN "pneumonia"
-      WHEN icd_codes LIKE "%J86%" THEN "pneumonia"
-
-      WHEN icd_codes LIKE "%N300%" THEN "uti"
-      WHEN icd_codes LIKE "%N390%" THEN "uti"
-
-      WHEN icd_codes LIKE "%K81%" THEN "biliary"
-      WHEN icd_codes LIKE "%K830%" THEN "biliary"
-      WHEN icd_codes LIKE "%K851%" THEN "biliary"
-      
-      WHEN icd_codes LIKE "%L0%" THEN "skin"
-      
-      WHEN icd_codes LIKE "%A41.9%" THEN "unknown source"       
-      
-      ELSE NULL
-  END AS infection_source
-
--- get top iatrogenic complications
-  , CASE 
-      WHEN icd_codes LIKE "%T80211%" THEN "central venous catheter"
-      WHEN icd_codes LIKE "%T83511%" THEN "urethral catheter"
-      WHEN icd_codes LIKE "%T814%" THEN "post surgical"
-      WHEN icd_codes LIKE "%J95851%" THEN "ventilator associated pneumonia"
-      ELSE NULL
-  END AS infection_hospital
-
 FROM `physionet-data.mimiciv_derived.icustay_detail` AS icu
 
 LEFT JOIN(
@@ -145,20 +118,82 @@ LEFT JOIN(
 AS diagnoses_icd10 
 ON diagnoses_icd10.hadm_id = icu.hadm_id
 
+-- Diagnoses upon admission and hospital acquired infections
 LEFT JOIN(
-  SELECT hadm_id, STRING_AGG(icd_code) AS icd_codes_source
-  FROM `physionet-data.mimiciv_hosp.diagnoses_icd`
-  WHERE seq_num <= 3
-  GROUP BY hadm_id
-)
-AS infection_source 
-ON infection_source.hadm_id = icu.hadm_id
+ 
+ WITH inf_s AS (
+  SELECT *
+  ,CASE 
+      WHEN icd_code LIKE "%J09%" THEN 1
+      WHEN icd_code LIKE "%J1%" THEN 1
+      WHEN icd_code LIKE "%J85%" THEN 1
+      WHEN icd_code LIKE "%J86%" THEN 1
+      ELSE NULL
+  END AS pneumonia
 
-LEFT JOIN(
-  SELECT hadm_id, STRING_AGG(icd_code) AS icd_codes_hospital
-  FROM `physionet-data.mimiciv_hosp.diagnoses_icd`
-  GROUP BY hadm_id
-)
-AS infection_hospital 
-ON infection_hospital.hadm_id = icu.hadm_id
+  ,CASE 
+      WHEN icd_code LIKE "%N300%" THEN 1
+      WHEN icd_code LIKE "%N390%" THEN 1       
+      ELSE NULL
+  END AS uti
 
+  ,CASE 
+      WHEN icd_code LIKE "%K81%" THEN 1
+      WHEN icd_code LIKE "%K830%" THEN 1
+      WHEN icd_code LIKE "%K851%" THEN 1  
+      ELSE NULL
+  END AS biliary
+
+  ,CASE      
+      WHEN icd_code LIKE "%L0%" THEN 1       
+      ELSE NULL
+  END AS skin
+
+FROM `physionet-data.mimiciv_hosp.diagnoses_icd` 
+
+WHERE seq_num <= 3 -- only consider top 3 diagnoses for importance
+)
+
+, inf_h AS (
+  SELECT *
+  , CASE 
+      WHEN icd_code LIKE "%T80211%" THEN 1
+      ELSE NULL
+  END AS hospital_clabsi
+
+ , CASE 
+      WHEN icd_code LIKE "%T83511%" THEN 1
+      ELSE NULL
+  END AS hospital_cauti
+
+ , CASE 
+      WHEN icd_code LIKE "%T814%" THEN 1
+      ELSE NULL
+  END AS hospital_ssi
+
+ , CASE 
+      WHEN icd_code LIKE "%J95851%" THEN 1
+      ELSE NULL
+  END AS hospital_vap
+
+FROM `physionet-data.mimiciv_hosp.diagnoses_icd` 
+
+-- here we consider all possible diagnoses
+)
+
+-- Group by admission
+SELECT DISTINCT inf_s.hadm_id, 
+MAX(inf_s.pneumonia) AS pneumonia, MAX(inf_s.uti) AS uti, MAX(inf_s.biliary) AS biliary, MAX(inf_s.skin) AS skin,
+MAX(inf_h.hospital_clabsi) AS clabsi, MAX(inf_h.hospital_cauti) AS cauti, MAX(inf_h.hospital_ssi) AS ssi, MAX(inf_h.hospital_vap) AS vap
+
+FROM inf_s
+
+LEFT JOIN inf_h
+ON inf_s.hadm_id = inf_h.hadm_id
+
+WHERE COALESCE(pneumonia, uti, biliary, skin) IS NOT NULL 
+GROUP BY hadm_id
+
+)
+AS adm_dx 
+ON adm_dx.hadm_id = icu.hadm_id
