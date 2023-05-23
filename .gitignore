@@ -1,6 +1,8 @@
 # History files
 .Rhistory
 .Rapp.history
+.DS_Store 
+# history from MacOS
 
 # Session Data files
 .RData
