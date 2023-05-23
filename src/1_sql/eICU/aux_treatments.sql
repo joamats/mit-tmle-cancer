@@ -7,9 +7,8 @@ SELECT
   , vent_2
   , vent_3
   , vent_4
-  , vent_5
-  , vent_6
-  , rrt_1
+  , rrt_overall_yes
+  , rrt_start_delta
   , pressor_1
   , pressor_2
   , pressor_3
@@ -54,19 +53,6 @@ LEFT JOIN(
 AS v3
 ON v3.patientunitstayid= icu.patientunitstayid
 
--- debug vent tags
-LEFT JOIN(
-    SELECT 
-      patientunitstayid
-    , COUNT(intubated) as vent_4
-    , COUNT(extubated) as vent_5
-    FROM `physionet-data.eicu_crd_derived.debug_vent_tags`
-    WHERE intubated = 1 OR extubated = 1
-    GROUP BY patientunitstayid
-)
-AS v45
-ON v45.patientunitstayid= icu.patientunitstayid
-
 -- respiratory care table
 LEFT JOIN(
     SELECT 
@@ -78,30 +64,84 @@ LEFT JOIN(
         WHEN COUNT(cuffpressure) >= 1 THEN 1
         WHEN COUNT(setapneatv) >= 1 THEN 1
         ELSE NULL
-      END AS vent_6
+      END AS vent_4
 
   FROM `physionet-data.eicu_crd.respiratorycare`
   GROUP BY patientunitstayid
 )
-AS v6
-ON v6.patientunitstayid= icu.patientunitstayid
+AS v4
+ON v4.patientunitstayid= icu.patientunitstayid
 
 -- treatment table to get RRT
-LEFT JOIN(
-    SELECT 
+LEFT JOIN (
+
+WITH rrt_temp AS (
+
+   SELECT DISTINCT 
       patientunitstayid
-    , COUNT(treatmentstring) as rrt_1
-    FROM `physionet-data.eicu_crd.treatment` 
-    WHERE (
-      treatmentstring LIKE "renal|dialysis|C%" OR 
-      treatmentstring LIKE "renal|dialysis|hemodialysis|emergent%" OR 
-      treatmentstring LIKE "renal|dialysis|hemodialysis|for acute renal failure" OR
-      treatmentstring LIKE "renal|dialysis|hemodialysis"
-      )
-    GROUP BY patientunitstayid
+      , 1 AS rrt_yes
+      , MIN(treatmentOffset) AS rrt_start_delta
+   FROM `physionet-data.eicu_crd.treatment`
+
+   WHERE treatmentstring LIKE "renal|dialysis|C%"
+      OR treatmentstring LIKE "renal|dialysis|hemodialysis|emergent%"
+      OR treatmentstring LIKE "renal|dialysis|hemodialysis|for acute renal failure"
+      OR treatmentstring LIKE "renal|dialysis|hemodialysis"
+   AND treatmentOffset > -1440
+
+   GROUP BY patientunitstayid
+
+   UNION DISTINCT
+
+   SELECT DISTINCT 
+      patientunitstayid
+      , 1 AS rrt_yes
+      , MIN(intakeOutputOffset) AS rrt_start_delta
+   FROM `physionet-data.eicu_crd.intakeoutput`
+
+   WHERE dialysistotal <> 0
+   AND intakeOutputOffset > -1440
+
+   GROUP BY patientunitstayid
+
+   UNION DISTINCT
+
+   SELECT 
+      patientunitstayid
+      , 1 AS rrt_yes
+      , MIN(noteoffset) as rrt_start_delta
+   FROM `physionet-data.eicu_crd.note` 
+
+   WHERE noteoffset > -1440 
+   AND (notetype ="Dialysis Catheter" OR  notetype ="Dialysis Catheter Change")
+
+   GROUP BY patientunitstayid
+
+  UNION DISTINCT
+
+   SELECT 
+      patientunitstayid
+      , 1 AS rrt_yes
+      , MIN(startoffset) as rrt_start_delta
+   FROM `physionet-data.eicu_crd_derived.crrt_dataset` 
+   
+   WHERE startoffset > -1440 
+ 
+   GROUP BY patientunitstayid
 )
-AS rrt1
-ON rrt1.patientunitstayid= icu.patientunitstayid
+
+  SELECT 
+      patientunitstayid
+    , MAX(rrt_yes) AS rrt_overall_yes
+    , MIN(rrt_start_delta) AS rrt_start_delta
+
+  FROM rrt_temp
+  GROUP BY patientunitstayid
+
+)
+AS rrt_overall
+ON rrt_overall.patientunitstayid = icu.patientunitstayid
+
 
 -- pivoted infusions table to get vasopressors
 LEFT JOIN(
