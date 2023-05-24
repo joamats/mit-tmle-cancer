@@ -1,5 +1,4 @@
 treatment
-mech_vent
-rrt
-vasopressor
-
+mv_elig
+rrt_elig
+vp_elig

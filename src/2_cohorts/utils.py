@@ -14,6 +14,12 @@ def get_demography(df):
     demo["sex"] = {
         "Male": df[df["sex_female"] == 0].shape[0] / df.shape[0],
         "Female": df[df["sex_female"] == 1].shape[0] / df.shape[0]}
+    demo["eng_prof"] = {
+        "Limited Proficiency": df[df["eng_prof"] == 0].shape[0] / df.shape[0],
+        "Proficient": df[df["eng_prof"] == 1].shape[0] / df.shape[0]}
+    demo["private_insurance"] = {
+        "Medicare/Medicaid": df[df["private_insurance"] == 0].shape[0] / df.shape[0],
+        "Other": df[df["private_insurance"] == 1].shape[0] / df.shape[0]}
     return demo
 
 

@@ -1,7 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
-.DS_Store 
+.DS_Store
 # history from MacOS
 
 # Session Data files
@@ -179,3 +179,4 @@ dmypy.json
 
 # VS Code Project
 .vscode
+

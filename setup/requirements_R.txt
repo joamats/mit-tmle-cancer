@@ -11,9 +11,13 @@ biglasso
 arm
 earth
 gam
+aod
 ranger
 xgboost
 flextable
 table1
 gdata
-openxlsx
+dbarts
+dbarts2
+glmnet
+datawizard
