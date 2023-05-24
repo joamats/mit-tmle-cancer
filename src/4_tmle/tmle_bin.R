@@ -1,5 +1,5 @@
-source("src/r_scripts/load_data.R")
-source("src/r_scripts/utils.R")
+source("src/2_cohorts/4_load_data.R")
+source("src/2_cohorts/utils.R")
 
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
