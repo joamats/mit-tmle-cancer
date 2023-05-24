@@ -7,10 +7,8 @@ SELECT
   , vent_start_delta
   , rrt_overall_yes
   , rrt_start_delta
-  , pressor_1
-  , pressor_2
-  , pressor_3
-  , pressor_4
+  , vp_yes
+  , vp_start_offset
 
 FROM `db_name.eicu_crd_derived.icustay_detail` as icu
 
@@ -386,51 +384,43 @@ AS rrt_overall
 ON rrt_overall.patientunitstayid = icu.patientunitstayid
 
 
--- pivoted infusions table to get vasopressors
+--  Query to get vasopressors
 LEFT JOIN(
+
+  -- Get a vasopressors offset table first
+  WITH vp_offest_table AS (
+
+    -- pivoted infusions table to get vasopressors
     SELECT 
-      patientunitstayid
-    , CASE
+      patientunitstayid,
+      CASE
         WHEN COUNT(norepinephrine) >= 1 THEN 1
         WHEN COUNT(phenylephrine) >= 1 THEN 1
         WHEN COUNT(epinephrine) >= 1 THEN 1
         WHEN COUNT(vasopressin) >= 1 THEN 1
         ELSE NULL
-      END AS pressor_1  
-
-  FROM `physionet-data.eicu_crd_derived.pivoted_infusion`
-  GROUP BY patientunitstayid
-)
-AS vp1
-ON vp1.patientunitstayid= icu.patientunitstayid
-
--- infusions table to get vasopressors
-LEFT JOIN(
-    SELECT 
-        patientunitstayid
-      , COUNT(drugname) as pressor_2
-    FROM `physionet-data.eicu_crd.infusiondrug`
-    WHERE(LOWER(drugname) LIKE '%norepinephrine%'
-      OR LOWER(drugname) LIKE '%phenylephrine%'
-      OR LOWER(drugname) LIKE '%epinephrine%'
-      OR LOWER(drugname) LIKE '%vasopressin%'
-      OR LOWER(drugname) LIKE '%neo synephrine%'
-      OR LOWER(drugname) LIKE '%neo-synephrine%'
-      OR LOWER(drugname) LIKE '%neosynephrine%' 
-      OR LOWER(drugname) LIKE '%neosynsprine%'
-    )
+        END AS vp_yes,
+      
+      MIN(chartoffset) AS vp_start_offset
+    
+    FROM `physionet-data.eicu_crd_derived.pivoted_infusion`
     GROUP BY patientunitstayid
-)
-AS vp2
-ON vp2.patientunitstayid= icu.patientunitstayid
 
--- medication
-LEFT JOIN(
-    SELECT  
-        patientunitstayid
-      , COUNT(drugname) as pressor_3
-    FROM `physionet-data.eicu_crd.medication`
-    WHERE(LOWER(drugname) LIKE '%norepinephrine%' 
+    UNION DISTINCT
+
+    -- infusions table to get vasopressors
+    SELECT 
+      patientunitstayid,
+      CASE
+        WHEN COUNT(drugname) >= 1 THEN 1
+        ELSE NULL
+        END AS vp_yes,
+      
+      MIN (infusionoffset) AS vp_start_offset
+   
+    FROM `physionet-data.eicu_crd.infusiondrug`
+    WHERE(
+      LOWER(drugname) LIKE '%norepinephrine%' 
       OR LOWER(drugname) LIKE '%phenylephrine%'
       OR LOWER(drugname) LIKE '%epinephrine%'
       OR LOWER(drugname) LIKE '%vasopressin%'
@@ -440,27 +430,68 @@ LEFT JOIN(
       OR LOWER(drugname) LIKE '%neosynsprine%'
     )
     GROUP BY patientunitstayid
-)
-AS vp3
-ON vp3.patientunitstayid= icu.patientunitstayid
 
+    UNION DISTINCT
 
--- pivoted med
-LEFT JOIN(
-    SELECT  
-        patientunitstayid
-      , CASE
-          WHEN SUM(norepinephrine) >= 1 THEN 1
-          WHEN SUM(phenylephrine) >= 1 THEN 1
-          WHEN SUM(epinephrine) >= 1 THEN 1
-          WHEN SUM(vasopressin) >= 1 THEN 1
-          ELSE NULL
-       END AS pressor_4
+    -- medication
+    SELECT 
+      patientunitstayid,
+      CASE
+        WHEN COUNT(drugname) >= 1 THEN 1
+        ELSE NULL
+        END AS vp_yes,
+      
+      MIN (drugstartoffset) as vp_start_offset
+
+    FROM `physionet-data.eicu_crd.medication`
+    WHERE(
+      LOWER(drugname) LIKE '%norepinephrine%' 
+      OR LOWER(drugname) LIKE '%phenylephrine%'
+      OR LOWER(drugname) LIKE '%epinephrine%'
+      OR LOWER(drugname) LIKE '%vasopressin%'
+      OR LOWER(drugname) LIKE '%neo synephrine%' 
+      OR LOWER(drugname) LIKE '%neo-synephrine%' 
+      OR LOWER(drugname) LIKE '%neosynephrine%'
+      OR LOWER(drugname) LIKE '%neosynsprine%'
+    )
+    GROUP BY patientunitstayid
+
+    UNION DISTINCT
+
+    -- pivoted med
+    SELECT 
+      patientunitstayid,
+      
+      CASE
+        WHEN SUM(norepinephrine) >= 1 THEN 1
+        WHEN SUM(phenylephrine) >= 1 THEN 1
+        WHEN SUM(epinephrine) >= 1 THEN 1
+        WHEN SUM(vasopressin) >= 1 THEN 1
+        ELSE NULL
+        END AS vp_yes,
+
+      MIN (chartoffset) as vp_start_offset
 
     FROM `physionet-data.eicu_crd_derived.pivoted_med`
     GROUP BY patientunitstayid
+    HAVING vp_yes IS NOT NULL
+  )
+
+  SELECT DISTINCT
+      patientunitstayid,
+      
+      CASE
+        WHEN COUNT(vp_yes) >= 1 THEN 1
+        ELSE NULL
+        END AS vp_yes,
+
+      MIN (vp_start_offset) as vp_start_offset
+  
+  FROM vp_offest_table
+  GROUP BY patientunitstayid
+
 )
-AS vp4
-ON vp4.patientunitstayid= icu.patientunitstayid
+AS vp
+ON vp.patientunitstayid = icu.patientunitstayid
 
 ORDER BY patientunitstayid
