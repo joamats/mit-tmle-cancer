@@ -4,7 +4,27 @@
 
 ## How to run this project?
 
-### 1. Get the Data!
+### 1. Clone this repository
+
+Run the following command in your terminal.
+```sh
+git clone https://github.com/joamats/mit-tmle-cancer.git
+```
+
+### 2. Install required Packages
+R scripts
+Run the following command in R:
+```sh
+source('setup/install_packages.R')
+```
+
+Python scripts
+Run the following command:
+```sh
+pip install -r setup/requirements_py.txt
+```
+
+### 3. Get the Data!
 
 Both MIMIC and eICU data can be found in [PhysioNet](https://physionet.org/), a repository of freely-available medical research data, managed by the MIT Laboratory for Computational Physiology. Due to its sensitive nature, credentialing is required to access both datasets.
 
@@ -18,8 +38,14 @@ In this section, we explain how to set up GCP and your environment in order to r
 2) Enable the [BigQuery API](https://console.cloud.google.com/apis/api/bigquery.googleapis.com)
 3) Create a [Service Account](https://console.cloud.google.com/iam-admin/serviceaccounts), where you can download your JSON keys
 4) Place your JSON keys in the parent folder (for example) of your project
-5) Create a .env file with the command `cp env.example env `
+5) Create a .env file with the command `nano .env` or `touch .env` for Mac and Linux users or `echo. >  .env` for Windows.
 6) Update your .env file with your ***JSON keys*** path and the ***id*** of your project in BigQuery
+
+Follow the format:
+```sh
+KEYS_FILE = "../GoogleCloud_keys.json"
+PROJECT_ID = "project-id"
+```
 
 #### MIMIC-IV
 
@@ -39,22 +65,22 @@ The rationale for eICU-CRD is similar. Run the following commands:
 python3 src/2_cohorts/1_get_data.py --sql "src/1_sql/eICU/eICU_cancer.sql" --destination "data/eICU.csv"
 ```
 
-### 2. Get the Cohorts
+### 4. Get the Cohorts
 
-**2.1 Get the necessary packages**
-
-Run this code to get all python packages:
-
-```sh
-pip install -r requirements_py.txt
-```
-
-**2.2 Get the dataframe ready**
+**4.1 Get the dataframe ready**
 
 With the following command, you can get the same cohorts we used for the study:
 
+#### eICU-CRD
+
 ```sh
-source("src/cohort.py")
+python3 src/2_cohorts/2_eICU.py
+```
+
+#### MIMIC-IV
+
+```sh
+python3 src/2_cohorts/3_MIMIC.py
 ```
 
 This will create the files `data/cohort_MIMIC.csv` and `data/cohort_eICU.csv`.

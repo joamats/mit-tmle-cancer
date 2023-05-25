@@ -4,11 +4,17 @@ from utils import get_demography, print_demo
 # MIMIC
 df0 = pd.read_csv("data/MIMIC.csv")
 print(f"{len(df0)} stays in the ICU")
+
+print(df0)
+for column in df0.columns:
+    print(column)
+
 demo0 = print_demo(get_demography(df0))
 print(f"({demo0})\n")
 
 # Remove non-sepsis stays
 df1 = df0[df0.sepsis3 == 1]
+
 print(f"Removed {len(df0) - len(df1)} stays without sepsis")
 demo1 = print_demo(get_demography(df1))
 print(f"{len(df1)} sepsis stays \n({demo1})\n")
