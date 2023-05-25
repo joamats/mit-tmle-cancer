@@ -1,11 +1,24 @@
 import pandas as pd
 import os
 import numpy as np
-from utils import get_demography, print_demo
+from utils import get_demography, print_demo, get_treatment_groups
 
 # eICU
 df1 = pd.read_csv("data/eICU.csv")
 df1['eng_prof'] = np.nan
+
+# Convert minutes to days
+df1['vent_start_offset'] = df1['vent_start_offset']/1440
+df1['rrt_start_offset'] = df1['rrt_start_offset']/1440
+df1['vp_start_offset'] = df1['vp_start_offset']/1440
+
+# Rename to match MIMIC IV:
+df1 = df1.rename(columns={'vent_start_offset': 'MV_init_offset_d_abs',
+                          'rrt_start_offset': 'RRT_init_offset_d_abs',
+                          'vp_start_offset': 'VP_init_offset_d_abs'})
+
+# Get treatment groups
+df1 = get_treatment_groups(df1)
 
 df1.anchor_age = df1.anchor_age.apply(lambda x: 91 if x == "> 89" else x).astype(float)
 print(f"{200859} stays in the ICU")
@@ -78,4 +91,3 @@ print(f"{len(df6s)} stays with sepsis, LoS > 24h, non-recurrent, adult, survivin
 # Save full surviving cohort
 df6s.to_csv('data/cohorts/eICU_cancer_surviving.csv')
 print(f"Saving full cohort to data/cohorts/eICU_cancer_surviving.csv\n")
-

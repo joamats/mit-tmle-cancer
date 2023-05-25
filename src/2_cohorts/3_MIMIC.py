@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from utils import get_demography, print_demo
+from utils import get_demography, print_demo, get_treatment_groups
 
 # MIMIC
 df0 = pd.read_csv("data/MIMIC.csv")
@@ -9,6 +9,10 @@ print(f"{len(df0)} stays in the ICU")
 # Replace ENGLISH WITH 1 AND ? WITH 0
 df0.language = df0.language.apply(lambda x: 1 if x == "ENGLISH" else 0)
 df0.rename(columns={"language": "eng_prof"}, inplace=True)
+
+# Get treatment groups
+df0 = get_treatment_groups(df0)
+
 
 demo0 = print_demo(get_demography(df0))
 print(f"({demo0})\n")

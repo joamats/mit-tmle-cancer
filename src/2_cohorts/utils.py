@@ -1,6 +1,24 @@
 import pandas as pd
 import numpy as np
 
+# Get treatment groups
+def get_treatment_groups(df):
+    """
+    Get the treatment groups for the cohort.
+    input: 
+        df (pd.DataFrame): The cohort.
+    output: 
+        df (pd.DataFrame): The cohort with treatment groups.
+    columns: mv_elig, rrt_elig, vp_elig
+        1 if the patient is eligible for the treatment, 0 otherwise.
+    """
+    
+    # Get the treatment groups for the cohort if less than 1 day
+    df['mv_elig'] = df['MV_init_offset_d_abs'].apply(lambda x: 1 if x <= 1 else 0)
+    df['rrt_elig'] = df['RRT_init_offset_d_abs'].apply(lambda x: 1 if x <= 1 else 0)
+    df['vp_elig'] = df['VP_init_offset_d_abs'].apply(lambda x: 1 if x <= 1 else 0)
+    
+    return df
 
 def get_demography(df):
     """Get the demography of the cohort.
