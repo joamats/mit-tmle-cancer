@@ -1,13 +1,14 @@
 import pandas as pd
+import os
 from utils import get_demography, print_demo
 
 # MIMIC
 df0 = pd.read_csv("data/MIMIC.csv")
 print(f"{len(df0)} stays in the ICU")
 
-print(df0)
-for column in df0.columns:
-    print(column)
+# Replace ENGLISH WITH 1 AND ? WITH 0
+df0.language = df0.language.apply(lambda x: 1 if x == "ENGLISH" else 0)
+df0.rename(columns={"language": "eng_prof"}, inplace=True)
 
 demo0 = print_demo(get_demography(df0))
 print(f"({demo0})\n")
@@ -36,6 +37,10 @@ df4 = df3.sort_values(by=["subject_id", "hadm_id", "icustay_seq"], ascending=Tru
 print(f"Removed {len(df3) - len(df4)} recurrent stays")
 demo4 = print_demo(get_demography(df4))
 print(f"{len(df4)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({demo4})\n")
+
+# create 'data/cohorts/' folder if it does not exist
+if not os.path.exists('data/cohorts/'):
+    os.makedirs('data/cohorts/')
 
 # Save full cohort
 df4.to_csv('data/cohorts/MIMIC_all.csv')

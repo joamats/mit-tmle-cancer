@@ -126,6 +126,11 @@ SELECT DISTINCT
       ELSE 0
     END AS mortality_in 
 
+  , hospital.hospitalid AS hospitalid
+  , hospital.numbedscategory AS numbedscategory
+  , hospital.teachingstatus AS teachingstatus
+  , hospital.region AS region
+
 
 FROM `db_name.my_eICU.yugang` AS yug
 
@@ -165,5 +170,13 @@ LEFT JOIN(
 )
 AS codes
 ON codes.patientunitstayid = yug.patientunitstayid 
+
+-- Left join hospitalid in yugang table with hospitalid in hospital table
+LEFT JOIN(
+  SELECT *
+  FROM `physionet-data.eicu_crd.hospital`
+)
+AS hospital
+ON hospital.hospitalid = yug.hospitalid
 
 ORDER BY yug.patienthealthsystemstayid, yug.patientunitstayid

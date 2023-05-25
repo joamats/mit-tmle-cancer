@@ -47,4 +47,4 @@ if __name__ == '__main__':
     args = parse_args()
     df = run_query(sql_query_path = args.sql)
     
-    df.to_csv(args.destination)
+    df.to_csv(args.destination, index=False)

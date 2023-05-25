@@ -1,8 +1,12 @@
 import pandas as pd
+import os
+import numpy as np
 from utils import get_demography, print_demo
 
 # eICU
 df1 = pd.read_csv("data/eICU.csv")
+df1['eng_prof'] = np.nan
+
 df1.anchor_age = df1.anchor_age.apply(lambda x: 91 if x == "> 89" else x).astype(float)
 print(f"{200859} stays in the ICU")
 
@@ -29,6 +33,10 @@ df4 = df3.sort_values(by=["patienthealthsystemstayid", "unitvisitnumber"], ascen
 print(f"Removed {len(df3) - len(df4)} recurrent stays")
 demo4 = print_demo(get_demography(df4))
 print(f"{len(df4)} stays with sepsis, LoS > 24h, non-recurrent, adult stays \n({demo4})\n")
+
+# create 'data/cohorts/' folder if it does not exist
+if not os.path.exists('data/cohorts/'):
+    os.makedirs('data/cohorts/')
 
 # Save full cohort
 df4.to_csv('data/cohorts/eICU_all.csv')
