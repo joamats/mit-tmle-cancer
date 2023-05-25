@@ -63,6 +63,8 @@ SELECT DISTINCT
       WHEN ( OASIS >= 46 AND OASIS <= 51) THEN "46-51" 
       WHEN ( OASIS > 51) THEN ">51" 
     END AS OASIS_ranges
+
+-- Treatments and their durations
   , CASE
       WHEN InvasiveVent.InvasiveVent_hr IS NOT NULL
       THEN 1
@@ -80,6 +82,72 @@ SELECT DISTINCT
       THEN 1
       ELSE 0
     END AS vasopressor
+
+, SAFE_DIVIDE(MV_time_hr,24) AS mv_time_d
+, SAFE_DIVIDE(vp_time_hr,24) AS vp_time_d
+, SAFE_DIVIDE(rrt_time_hr,24) AS rrt_time_d
+, SAFE_DIVIDE(SAFE_DIVIDE(MV_time_hr,24),icu.los_icu) AS MV_time_perc_of_stay
+, SAFE_DIVIDE(SAFE_DIVIDE(vp_time_hr,24),icu.los_icu) AS VP_time_perc_of_stay,
+
+-- MV as offset as fraction of LOS
+CASE
+  WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
+  THEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR)/24/icu.los_icu
+  WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) <= 0
+  THEN 0
+  ELSE NULL
+END AS MV_init_offset_perc,
+
+-- MV as offset absolut in days
+CASE
+  WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
+  THEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR)/24
+  WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) <= 0
+  THEN 0
+  ELSE NULL
+END AS MV_init_offset_d_abs,
+
+-- RRT as offset as fraction of LOS
+CASE
+  WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) >= 0.01
+  THEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR)/24/icu.los_icu
+  WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) <= 0
+  THEN 0
+  ELSE NULL
+END AS RRT_init_offset_perc,
+
+-- RRT as offset absolut in days
+CASE
+  WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) >= 0.01
+  THEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR)/24
+  WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) <= 0
+  THEN 0
+  ELSE NULL
+END AS RRT_init_offset_d_abs,
+
+-- VP as offset as fraction of LOS
+CASE
+  WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
+  THEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR)/24/icu.los_icu
+  WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) <= 0
+  THEN 0
+  ELSE NULL
+END AS VP_init_offset_perc,
+
+-- VP as offset absolut in days
+CASE
+  WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
+  THEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR)/24
+  WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) <= 0
+  THEN 0
+  ELSE NULL
+END AS VP_init_offset_d_abs,
+
+-- Dummy variables to match for eICU
+001 AS hospitalid, -- dummy variable for hospitalid in eICU
+">= 500" AS numbedscategory, -- dummy variable for numbedscategory in eICU
+"true" AS teachingstatus, -- is boolean in eICU
+"Northeast" AS region -- dummy variable for US census region in eICU
 
   , cancer.has_cancer
   , cancer.group_solid
@@ -183,6 +251,34 @@ LEFT JOIN (
 AS InvasiveVent
 ON InvasiveVent.stay_id = icu.stay_id
 
+-- for MV perc of stay
+left join (
+  SELECT vent.stay_id,
+  SUM(TIMESTAMP_DIFF(endtime,starttime,HOUR)) as MV_time_hr
+  FROM `physionet-data.mimiciv_derived.ventilation` vent
+  LEFT JOIN `physionet-data.mimiciv_derived.icustay_detail` icu
+  ON icu.stay_id = vent.stay_id
+  AND TIMESTAMP_DIFF(icu.icu_outtime, endtime, HOUR) > 0
+  AND TIMESTAMP_DIFF(starttime, icu.icu_intime, HOUR) > 0
+  WHERE (ventilation_status = "Trach" OR ventilation_status = "InvasiveVent")
+  GROUP BY stay_id
+) AS mv_time
+ON mv_time.stay_id = icu.stay_id
+
+-- for MV initation offset 
+LEFT JOIN (
+  SELECT vent.stay_id, MIN(starttime) as starttime
+  FROM `physionet-data.mimiciv_derived.ventilation` vent
+  LEFT JOIN `physionet-data.mimiciv_derived.icustay_detail` icu
+  ON icu.stay_id = vent.stay_id
+  AND TIMESTAMP_DIFF(icu.icu_outtime, endtime, HOUR) > 0
+  AND TIMESTAMP_DIFF(starttime, icu.icu_intime, HOUR) > 0
+  WHERE (ventilation_status = "Trach" OR ventilation_status = "InvasiveVent")
+  GROUP BY stay_id
+)
+AS mv_mtime
+ON mv_mtime.stay_id = icu.stay_id
+
 -- RRT
 LEFT JOIN (
   SELECT DISTINCT stay_id, dialysis_present AS rrt 
@@ -192,33 +288,72 @@ LEFT JOIN (
 AS rrt
 ON icu.stay_id = rrt.stay_id 
 
+-- RRT initiation offset
+LEFT JOIN (
+  SELECT dia.stay_id,
+  MAX(dialysis_present) AS rrt,
+  MIN(charttime) AS charttime,
+  TIMESTAMP_DIFF(MAX(charttime), MIN(charttime), HOUR) AS rrt_time_hr
+  FROM `physionet-data.mimiciv_derived.rrt` dia
+
+  LEFT JOIN `physionet-data.mimiciv_derived.icustay_detail` icu
+  ON icu.stay_id = dia.stay_id
+  AND TIMESTAMP_DIFF(icu.icu_outtime, charttime, HOUR) > 0 -- to make sure it's within the ICU stay
+  AND TIMESTAMP_DIFF(charttime, icu.icu_intime, HOUR) > 0
+  WHERE dialysis_type like "C%" OR dialysis_type like "IHD" -- only consider hemodialyisis
+  GROUP BY stay_id
+) AS rrt_time
+ON icu.stay_id = rrt_time.stay_id 
+
+
 -- Vasopressors
 LEFT JOIN (
   SELECT DISTINCT stay_id
-  FROM  physionet-data.mimiciv_derived.epinephrine
+  FROM  `physionet-data.mimiciv_derived.epinephrine`
   UNION DISTINCT 
 
   SELECT DISTINCT stay_id
-  FROM  physionet-data.mimiciv_derived.dobutamine
+  FROM `physionet-data.mimiciv_derived.norepinephrine`
   UNION DISTINCT 
 
   SELECT DISTINCT stay_id
-  FROM physionet-data.mimiciv_derived.dopamine
-  UNION DISTINCT 
-
-  SELECT DISTINCT stay_id
-  FROM physionet-data.mimiciv_derived.norepinephrine
-  UNION DISTINCT 
-
-  SELECT DISTINCT stay_id
-  FROM physionet-data.mimiciv_derived.phenylephrine
+  FROM `physionet-data.mimiciv_derived.phenylephrine`
   UNION DISTINCT
 
   SELECT DISTINCT stay_id
-  FROM physionet-data.mimiciv_derived.vasopressin
+  FROM `physionet-data.mimiciv_derived.vasopressin`
   )
 AS pressor
 ON icu.stay_id = pressor.stay_id 
+
+-- for VP percentage of stay
+LEFT JOIN(
+  SELECT
+    nor.stay_id
+    , SUM(TIMESTAMP_DIFF(endtime, starttime, HOUR)) AS vp_time_hr
+  FROM `physionet-data.mimiciv_derived.norepinephrine_equivalent_dose` nor
+  LEFT JOIN `physionet-data.mimiciv_derived.icustay_detail` icu
+  ON icu.stay_id = nor.stay_id
+  AND TIMESTAMP_DIFF(icu.icu_outtime, endtime, HOUR) > 0
+  AND TIMESTAMP_DIFF(starttime, icu.icu_intime, HOUR) > 0
+  GROUP BY stay_id
+) AS vp_time
+ON vp_time.stay_id = icu.stay_id
+
+-- VPs offset initiation
+LEFT JOIN(
+  SELECT
+    nor.stay_id
+    , MIN(starttime) AS starttime
+  FROM `physionet-data.mimiciv_derived.norepinephrine_equivalent_dose` nor
+  LEFT JOIN `physionet-data.mimiciv_derived.icustay_detail` icu
+  ON icu.stay_id = nor.stay_id
+  AND TIMESTAMP_DIFF(icu.icu_outtime, endtime, HOUR) > 0
+  AND TIMESTAMP_DIFF(starttime, icu.icu_intime, HOUR) > 0
+  GROUP BY stay_id
+) AS vp_mtime
+ON vp_mtime.stay_id = icu.stay_id
+
 
 -- Elective Admission
 LEFT JOIN (

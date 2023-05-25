@@ -25,7 +25,7 @@ In this section, we explain how to set up GCP and your environment in order to r
 
 After getting credentialing at PhysioNet, you must sign the data use agreement and connect the database with GCP, either asking for permission or uploading the data to your project. Please note that only MIMIC v2.0 is available at GCP.
 
-Having all the necessary tables for the cohort generation query in your project, run the following command to fetch the data as a dataframe that will be saved as CSV in your local project. Make sure you have all required files and folders.
+Having all the necessary tables for the cohort generation query in your project, run the following command to fetch the data as a dataframe that will be saved as CSV in your local project. Make sure you have all required files and folders
 
 ```shell
 python3 src/2_cohorts/1_get_data.py --sql "src/1_sql/MIMIC/MIMIC_cancer.sql" --destination "data/MIMIC.csv"
@@ -40,6 +40,16 @@ python3 src/2_cohorts/1_get_data.py --sql "src/1_sql/eICU/eICU_cancer.sql" --des
 ```
 
 ### 2. Get the Cohorts
+
+**2.1 Get the necessary packages**
+
+Run this code to get all python packages:
+
+```sh
+pip install -r requirements_py.txt
+```
+
+**2.2 Get the dataframe ready**
 
 With the following command, you can get the same cohorts we used for the study:
 

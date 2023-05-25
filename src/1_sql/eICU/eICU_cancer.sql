@@ -23,7 +23,7 @@ SELECT DISTINCT
   , yug.admissionweight AS weight_admit
   , yug.hospitaladmitsource AS adm_type
   , yug.hospitaldischargeyear AS anchor_year_group
-  , yug.hospitaldischargeoffset / 1440 AS los_icu
+  , yug.los_icu
   , icustay_detail.unitvisitnumber
 
   , yug.Charlson as CCI
@@ -42,35 +42,41 @@ SELECT DISTINCT
       WHEN ( yug.sofa_admit > 10) THEN ">10" 
     END AS SOFA_ranges
 
+-- Treatments and their offsets
   , CASE 
       WHEN 
            yug.vent IS TRUE
-        OR vent_1 > 0
-        OR vent_2 > 0
-        OR vent_3 > 0
-        OR vent_4 > 0
-        OR vent_5 > 0
+        OR vent_yes > 0
       THEN 1
       ELSE 0
     END AS mech_vent
+
   , CASE 
       WHEN 
            yug.rrt IS TRUE
-        OR rrt_1 > 0
+        OR rrt_yes > 0
       THEN 1
       ELSE 0
     END AS rrt
+
   , CASE 
       WHEN 
            yug.vasopressor IS TRUE
-        OR pressor_1 > 0
-        OR pressor_2 > 0 
-        OR pressor_3 > 0 
-        OR pressor_4 > 0 
+        OR vp_yes > 0
       THEN 1
       ELSE 0
     END AS vasopressor
   
+  , vent_start_offset
+  , rrt_start_offset
+  , vp_start_offset
+
+  , SAFE_DIVIDE(vent_start_offset,(24*60)) AS mv_time_d -- convert from minutes to days, in MIMIC it's from hours to days
+  , SAFE_DIVIDE(rrt_start_offset,(24*60)) AS rrt_time_d
+  , SAFE_DIVIDE(vp_start_offset,(24*60)) AS vp_time_d
+  , SAFE_DIVIDE(SAFE_DIVIDE(vent_duration,(24*60)),yug.los_icu) AS MV_time_perc_of_stay
+ -- , SAFE_DIVIDE(SAFE_DIVIDE(vp_time_hr,(24*60)),yug.los_icu) AS VP_time_perc_of_stay -- omitted as not easily feasible in eICU
+
   , cancer.has_cancer
   , cancer.group_solid
   , cancer.group_metastasized

@@ -4,9 +4,10 @@ CREATE TABLE `db_name.my_eICU.aux_treatments` AS
 SELECT 
   icu.patientunitstayid
   , vent_yes
-  , vent_start_delta
-  , rrt_overall_yes
-  , rrt_start_delta
+  , vent_start_delta AS vent_start_offset
+  , vent_duration
+  , rrt_yes
+  , rrt_start_delta AS rrt_start_offset
   , vp_yes
   , vp_start_offset
 
@@ -373,7 +374,7 @@ WITH rrt_temp AS (
 
   SELECT 
       patientunitstayid
-    , MAX(rrt_yes) AS rrt_overall_yes
+    , MAX(rrt_yes) AS rrt_yes
     , MIN(rrt_start_delta) AS rrt_start_delta
 
   FROM rrt_temp

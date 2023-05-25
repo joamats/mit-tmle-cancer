@@ -6,7 +6,8 @@ sf.sofa_admit,
 (s3.patientunitstayid = vaso.patientunitstayid) as vasopressor,
 (s3.patientunitstayid = rrtid.patientunitstayid) as rrt,
 (s3.patientunitstayid = ventid.patientunitstayid) as vent,
-cci.final_charlson_score as Charlson
+cci.final_charlson_score as Charlson,
+hospitaldischargeoffset / 1440 AS los_icu
 
 from `db_name.icu_elos.sepsis_adult_eicu` s3
 
