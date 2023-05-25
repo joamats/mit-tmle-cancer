@@ -13,7 +13,6 @@ df0.rename(columns={"language": "eng_prof"}, inplace=True)
 # Get treatment groups
 df0 = get_treatment_groups(df0)
 
-
 demo0 = print_demo(get_demography(df0))
 print(f"({demo0})\n")
 

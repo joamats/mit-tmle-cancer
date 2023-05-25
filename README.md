@@ -85,6 +85,13 @@ python3 src/2_cohorts/3_MIMIC.py
 
 This will create the files `data/cohort_MIMIC.csv` and `data/cohort_eICU.csv`.
 
+#### 4.2 Get the cohorts ready for analysis
+
+Run the command
+```sh  
+source("src/2_cohorts/4_load_data.R")
+```
+
 ### 3. Run the TMLE analysis
 
 We made it really easy for you in this part. All you have to do is:
