@@ -82,8 +82,7 @@ python3 src/2_cohorts/2_eICU.py
 python3 src/2_cohorts/3_MIMIC.py
 ```
 
-This will create the files `data/cohort_MIMIC.csv` and `data/cohort_eICU.csv`.
-
+This will create the files `data/cohorts/MIMIC_all.csv` and `data/cohorts/MIMIC_cancer.csv` for MIMIC IV, and the files `data/cohorts/eICU_all.csv` and `data/cohorts/eICU_cancer.csv` for eICU.
 
 **4.2 Get a merged dataframe ready**
 
@@ -91,6 +90,7 @@ Run the command in you R console:
 ```sh  
 source("src/2_cohorts/4_load_data.R")
 ```
+This will create the files `data/cohorts/merged_all.csv` and `data/cohorts/merged_cancer.csv`.
 
 ### 3. Run the TMLE analysis
 
