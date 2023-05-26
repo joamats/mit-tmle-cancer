@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from utils import get_demography, print_demo, get_treatment_groups
+from utils import get_demography, print_demo, get_treatment_groups, comparte_resulting_cohort_datasets
 
 # MIMIC
 df0 = pd.read_csv("data/MIMIC.csv")
@@ -85,3 +85,5 @@ print(f"{len(df6s)} stays with sepsis, LoS > 24h, non-recurrent, adult, survivin
 # Save full surviving cohort
 df6s.to_csv('data/cohorts/MIMIC_cancer_surviving.csv')
 print(f"Saving full cohort to data/cohorts/MIMIC_cancer_surviving.csv\n")
+
+#comparte_resulting_cohort_datasets()

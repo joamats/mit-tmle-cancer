@@ -20,6 +20,14 @@ load_data <- function(cohort){
       data['mortality_90'] <- NA
 
     } 
+  
+  # Show the data frame
+  # check if eICU or MIMIC in cohort name
+  if (grepl("eICU", cohort)) {
+    print(paste0("eICU cohort: ", cohort))
+  } else {
+    print(paste0("MIMIC cohort: ", cohort))
+  }
 
   data$ethno_white <- data$race_group 
   data <- data %>% mutate(ethno_white = ifelse(race_group=="White", 1, 0))
@@ -30,7 +38,7 @@ load_data <- function(cohort){
                     "loc_melanoma", "loc_breast", "loc_endometrial", "loc_prostate",
                     "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia",
                     "com_copd_present", "com_asthma_present", "com_heart_failure_present",
-                    "com_hypertension_present")
+                    "com_hypertension_present", 'mv_elig', 'rrt_elig', 'vp_elig')
 
   data <- data %>% mutate_at(cancer_list, ~ replace_na(., 0))
 
@@ -51,7 +59,8 @@ load_data <- function(cohort){
                   "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia",
                   "com_hypertension_present", "com_heart_failure_present", "com_asthma_present",
                   "com_copd_present", "com_ckd_stages",
-                  "is_full_code_admission", "is_full_code_discharge")
+                  "is_full_code_admission", "is_full_code_discharge"
+                  , 'mv_elig', 'rrt_elig', 'vp_elig')
              ]
     return(data)
 
@@ -71,6 +80,7 @@ get_merged_datasets <- function() {
 
   write.csv(data_all, "data/cohorts/merged_all.csv")
   write.csv(data_cancer, "data/cohorts/merged_cancer.csv")
+  print('Done!')
 }
 
 get_merged_datasets()

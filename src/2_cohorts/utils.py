@@ -54,3 +54,30 @@ def print_demo(demo):
             demo_str += f"{key}: {round(value*100,1)}%, "
     demo_str = demo_str[:-2]
     return demo_str
+
+import pandas as pd
+
+def read_file(path):
+    df = pd.read_csv('data/cohorts/' + path + '.csv')
+    return df
+
+# Check if columns in a dataframe are the same
+def columns_in_df1_not_in_df2(file1, file2):
+    df1 = read_file(file1)
+    df2 = read_file(file2)
+
+    print('*'*100)
+    print(f'*  Columns in {file1} not in {file2}:')
+    columns_in_df1_not_in_df2 = [col for col in df1.columns if col not in df2.columns]
+    print(columns_in_df1_not_in_df2)
+    print('')
+    print(f'*  Columns in {file2} not in {file1}:')
+    columns_in_df2_not_in_df1 = [col for col in df2.columns if col not in df1.columns]
+    print(columns_in_df2_not_in_df1)
+    print('*'*100)
+
+def comparte_resulting_cohort_datasets(names = ['MIMIC_all', 'eICU_all', 'MIMIC_cancer', 'eICU_cancer']):
+
+    columns_in_df1_not_in_df2(names[0], names[1])
+
+    columns_in_df1_not_in_df2(names[2], names[3])
