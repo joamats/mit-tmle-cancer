@@ -19,7 +19,7 @@ source('setup/install_packages.R')
 ```
 
 Python scripts
-Run the following command:
+Run the following command in you terminal:
 ```sh
 pip install -r setup/requirements_py.txt
 ```
@@ -92,7 +92,7 @@ source("src/2_cohorts/4_load_data.R")
 ```
 This will create the files `data/cohorts/merged_all.csv` and `data/cohorts/merged_cancer.csv`.
 
-### 3. Run the TMLE analysis
+### 5. Run the TMLE analysis
 
 We made it really easy for you in this part. All you have to do is:
 
