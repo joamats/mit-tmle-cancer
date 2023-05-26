@@ -59,8 +59,8 @@ load_data <- function(cohort){
                   "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia",
                   "com_hypertension_present", "com_heart_failure_present", "com_asthma_present",
                   "com_copd_present", "com_ckd_stages",
-                  "is_full_code_admission", "is_full_code_discharge"
-                  , 'mv_elig', 'rrt_elig', 'vp_elig')
+                  "is_full_code_admission", "is_full_code_discharge", 
+                  'mv_elig', 'rrt_elig', 'vp_elig')
              ]
     return(data)
 

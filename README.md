@@ -67,9 +67,9 @@ python3 src/2_cohorts/1_get_data.py --sql "src/1_sql/eICU/eICU_cancer.sql" --des
 
 ### 4. Get the Cohorts
 
-**4.1 Get the dataframe ready**
+**4.1 Get the cohorts ready for analysis**
 
-With the following command, you can get the same cohorts we used for the study:
+With the following command, you can get the same cohorts we used for the study. Run the commands in your terminal:
 
 #### eICU-CRD
 
@@ -78,16 +78,16 @@ python3 src/2_cohorts/2_eICU.py
 ```
 
 #### MIMIC-IV
-
 ```sh
 python3 src/2_cohorts/3_MIMIC.py
 ```
 
 This will create the files `data/cohort_MIMIC.csv` and `data/cohort_eICU.csv`.
 
-#### 4.2 Get the cohorts ready for analysis
 
-Run the command
+**4.2 Get a merged dataframe ready**
+
+Run the command in you R console:
 ```sh  
 source("src/2_cohorts/4_load_data.R")
 ```
