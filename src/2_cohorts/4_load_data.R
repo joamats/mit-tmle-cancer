@@ -75,11 +75,12 @@ get_merged_datasets <- function() {
   eicu_cancer <- load_data("eICU_cancer")
 
   # merge 2 cohorts
-  data_all <- combine(mimic_all, eicu_all)
-  data_cancer <- combine(mimic_cancer, eicu_cancer)
+  data_all <- combine(mimic_all, eicu_all, names=c("mimc", "eicu"))
+  data_cancer <- combine(mimic_cancer, eicu_cancer, names=c("mimc", "eicu"))
 
-  write.csv(data_all, "data/cohorts/merged_all.csv")
-  write.csv(data_cancer, "data/cohorts/merged_cancer.csv")
+  # save ignoring index column
+  write.csv(data_all, "data/cohorts/merged_all.csv", row.names = FALSE)
+  write.csv(data_cancer, "data/cohorts/merged_cancer.csv", row.names = FALSE)
   print('Done!')
 }
 

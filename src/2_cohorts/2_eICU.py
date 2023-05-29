@@ -52,7 +52,7 @@ if not os.path.exists('data/cohorts/'):
     os.makedirs('data/cohorts/')
 
 # Save full cohort
-df4.to_csv('data/cohorts/eICU_all.csv')
+df4.to_csv('data/cohorts/eICU_all.csv', index=False)
 print(f"Saving full cohort to data/cohorts/eICU_all.csv\n")
 
 # Remove patients who died in the ICU
@@ -62,7 +62,7 @@ demo4s = print_demo(get_demography(df4s))
 print(f"{len(df4s)} stays with sepsis, LoS > 24h, non-recurrent, adult, surviving stays \n({demo4s})\n")
 
 # Save full surviving cohort
-df4s.to_csv('data/cohorts/eICU_all_surviving.csv')
+df4s.to_csv('data/cohorts/eICU_all_surviving.csv', index=False)
 print(f"Saving full cohort to data/cohorts/eICU_all_surviving.csv\n")
 
 # Remove non-cancer patients, but we take recurrent stays too
@@ -79,7 +79,7 @@ demo6 = print_demo(get_demography(df6))
 print(f"{len(df6)} stays with sepsis, cancer, LoS > 24h, non-recurrent, adult stays \n({demo6})\n")
 
 # Save cancer cohort
-df6.to_csv('data/cohorts/eICU_cancer.csv')
+df6.to_csv('data/cohorts/eICU_cancer.csv', index=False)
 print(f"Saving cancer cohort to data/cohorts/eICU_cancer.csv\n")
 
 # Remove cancer patients who died in the ICU
@@ -89,5 +89,5 @@ demo6s = print_demo(get_demography(df6s))
 print(f"{len(df6s)} stays with sepsis, LoS > 24h, non-recurrent, adult, surviving stays \n({demo6s})\n")
 
 # Save full surviving cohort
-df6s.to_csv('data/cohorts/eICU_cancer_surviving.csv')
+df6s.to_csv('data/cohorts/eICU_cancer_surviving.csv', index=False)
 print(f"Saving full cohort to data/cohorts/eICU_cancer_surviving.csv\n")
