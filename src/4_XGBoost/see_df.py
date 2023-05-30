@@ -19,7 +19,22 @@ print(cancer_df.head())
 print('Columns: ', cancer_df.columns)
 print('#'*50)
 
+def get_cohort(i):
+    return {"cohort": [i],
+            "group": [i],
+            "treatment": [i],
+            "OR": [i],
+            "2.5%": [i],
+            "97.5%": [i]}
 
+results_df = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
+
+for i in range(10):
+    new_row = pd.DataFrame.from_dict(get_cohort())
+    
+    results_df = pd.concat([results_df, new_row], ignore_index=True)
+    
+#print(results_df.head())
 
 # print(f"Race cohort: {pd.unique(cancer_df['race_group'])}")
 

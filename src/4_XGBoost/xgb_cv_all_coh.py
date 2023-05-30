@@ -67,9 +67,9 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort):
                 kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=i)
 
                 # Inner loop, in each fold, running in parallel
-                ORs = Parallel(n_jobs=num_processes)
-                (
-                    delayed(train_model)(train_index, test_index, X, y, conf, group) for train_index, test_index in tqdm(kf.split(X, r))
+                ORs = Parallel(n_jobs=num_processes)(
+                    delayed(train_model)(train_index, test_index, X, y, conf, group)
+                    for train_index, test_index in tqdm(kf.split(X, r))
                 )
 
                 # Calculate odds ratio based on all 5 folds
@@ -83,12 +83,12 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort):
 
             print(f"OR (95% CI): {O_R:.3f} ({CI_lower:.3f} - {CI_upper:.3f})")
 
-            return {"cohort": cohort,
-                    "Group": group,
-                    "treatment": treatment,
-                    "OR": O_R,
-                    "2.5%": CI_lower,
-                    "97.5%": CI_upper}
+            return {"cohort": [cohort],
+                    "group": [group],
+                    "treatment": [treatment],
+                    "OR": [O_R],
+                    "2.5%": [CI_lower],
+                    "97.5%": [CI_upper]}
 
 
 def check_columns_in_df(df, columns):
@@ -125,7 +125,7 @@ with open("config/cancer_types.txt", "r") as f:
 cancer_types.remove("cancer_type")
 
 # create dataframes to store results
-results_df = pd.DataFrame(columns=["cohort", "race", "treatment", "OR", "2.5%", "97.5%"])
+results_df = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
 
 group = ''
 for cohort in cohorts:
@@ -154,11 +154,11 @@ for cohort in cohorts:
 
     check_columns_in_df(df, confounders)
     
-
-    results = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others')
     
+    results = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others')
+    results = pd.DataFrame.from_dict(results)
     # append results to dataframe
-    results_df = results_df.append(results, ignore_index=True)
+    results_df = pd.concat([results_df, results], ignore_index=True)
 
 # save results as we go
 results_df.to_csv(f"results/models/{setting}.csv", index=False)
