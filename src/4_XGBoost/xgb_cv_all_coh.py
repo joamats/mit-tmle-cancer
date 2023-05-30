@@ -8,8 +8,13 @@ from joblib import Parallel, delayed
 import re
 import os
 
+from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
 import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning, module='numba')
+# ignore all warnings
+warnings.simplefilter('ignore')
+
+warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
+warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
 
 setting = "sens/xgb_cv_all_coh"
 
@@ -17,7 +22,7 @@ setting = "sens/xgb_cv_all_coh"
 # Number of folds used in cross-validation (also used as parallel processes)
 N_FOLDS = 5
 # Tests per cohort
-NREP = 50
+NREP = 1
 
 ### Get the data ###
 # now read treatment from txt
@@ -67,7 +72,7 @@ def calc_OR(shap_values, data, feature):
     return np.exp(study_group[feature]) / np.exp(control_group[feature])
 
 
-def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort):
+def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort, results_df):
     # Get the treatments:
     for treatment in treatments:
         print(f"Doing the prediction for treatment: {treatment}")
@@ -115,12 +120,19 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort):
 
             print(f"OR (95% CI): {O_R:.3f} ({CI_lower:.3f} - {CI_upper:.3f})")
 
-            return {"cohort": [cohort],
-                    "group": [group],
-                    "treatment": [treatment],
-                    "OR": [O_R],
-                    "2.5%": [CI_lower],
-                    "97.5%": [CI_upper]}
+            results = { "cohort": [cohort],   
+                        "group": [group],
+                        "treatment": [treatment],
+                        "OR": [O_R],
+                        "2.5%": [CI_lower],
+                        "97.5%": [CI_upper]}
+            results = pd.DataFrame.from_dict(results)
+            
+            # append results to dataframe
+            results_df = pd.concat([results_df, results], ignore_index=True)
+
+    return results_df
+
 
 
 def check_columns_in_df(df, columns):
@@ -130,14 +142,15 @@ def check_columns_in_df(df, columns):
             cols_not_in_df.append(col)
             print(f"Column {col} not in df")
     if len(cols_not_in_df) > 0:
-        print(f"Columns not in df: {cols_not_in_df}")
+        print(f"This cofounders are not in the df: {cols_not_in_df}")
         return False
     else:
         return True
 
 
 # create dataframes to store results
-results_df = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
+results_template = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
+results_df = results_template.copy()
 
 group = ''
 for cohort in cohorts:
@@ -148,6 +161,16 @@ for cohort in cohorts:
         group = 'has_cancer'
         cohort = 'cancer'
 
+        """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
+        confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
+        print(f"Confounders: {confounders}")
+        check = check_columns_in_df(df, confounders)
+        if check == False:
+            continue
+
+        results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
+        results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
+
     elif cohort == 'cancer_type':
         # Get the dataset for each cancer type
         for cancer_type in cancer_types:
@@ -156,27 +179,25 @@ for cohort in cohorts:
             df = pd.read_csv(f"data/cohorts/merged_cancer.csv")
             cohort = cancer_type
 
+            """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
+            confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
+            print(f"Confounders: {confounders}")
+            check = check_columns_in_df(df, confounders)
+            if check == False:
+                continue
+                
+            results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
+            results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
+
     else:
         print(f"Error: {cohort} should be cancer_vs_nocancer or cancer_type or both of them")
         continue
-
-    """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
-    confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
-    print(f"Confounders: {confounders}")
-
-    check_columns_in_df(df, confounders)
-    
-    
-    results = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others')
-    results = pd.DataFrame.from_dict(results)
-    # append results to dataframe
-    results_df = pd.concat([results_df, results], ignore_index=True)
 
 # save results as we go
 try:
     results_df.to_csv(f"results/models/{setting}.csv", index=False)
 # if folder does not exist, create it and save results
-except FileNotFoundError:
+except:
     try:
         os.mkdir("results/models")
         results_df.to_csv(f"results/models/{setting}.csv", index=False)

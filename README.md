@@ -92,9 +92,9 @@ source("src/2_cohorts/4_load_data.R")
 ```
 This will create the files `data/cohorts/merged_all.csv` and `data/cohorts/merged_cancer.csv`.
 
-### 5. Get the propensity scores
+### 5. Get the odds ratios
 
-To get the propensity scores, an XBGoost model was trained several times using a 5 fold cross validation method to calculate the probability of having each outcome given the covariates. Once the model was trained, we used the test set to calculate the SHAP values for each feature and then we used the SHAP values to calculate the propensity scores.
+To get the odds ratios, an XBGoost model was trained several times using a 5 fold cross validation method to calculate the probability of having each outcome given the covariates. Once the model was trained, we used the test set to calculate the SHAP values for each feature and then we used the SHAP values to calculate the odds ratios.
 
 To do so, run the following command in your terminal:
 ```sh
