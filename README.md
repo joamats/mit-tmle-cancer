@@ -92,7 +92,16 @@ source("src/2_cohorts/4_load_data.R")
 ```
 This will create the files `data/cohorts/merged_all.csv` and `data/cohorts/merged_cancer.csv`.
 
-### 5. Run the TMLE analysis
+### 5. Get the propensity scores
+
+To get the propensity scores, an XBGoost model was trained several times using a 5 fold cross validation method to calculate the probability of having each outcome given the covariates. Once the model was trained, we used the test set to calculate the SHAP values for each feature and then we used the SHAP values to calculate the propensity scores.
+
+To do so, run the following command in your terminal:
+```sh
+python3 src/4_XGBoost/xgb_cv_all_coh.py
+```
+
+### 6. Run the TMLE analysis
 
 We made it really easy for you in this part. All you have to do is:
 
