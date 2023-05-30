@@ -5,14 +5,41 @@ import shap
 from xgboost import XGBClassifier
 from sklearn.model_selection import StratifiedKFold
 from joblib import Parallel, delayed
+import re
+import os
 
 import warnings
-warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module='numba')
 
 setting = "sens/xgb_cv_all_coh"
 
-# Number of parallel processes
-num_processes = 5
+### Constants ###
+# Number of folds used in cross-validation (also used as parallel processes)
+N_FOLDS = 5
+# Tests per cohort
+NREP = 50
+
+### Get the data ###
+# now read treatment from txt
+with open("config/treatments.txt", "r") as f:
+    treatments = f.read().splitlines()
+treatments.remove("treatment")
+
+# read features from list in txt
+with open("config/confounders.txt", "r") as f:
+    confounders = f.read().splitlines()
+confounders.remove("confounder")
+
+# Get the cohorts
+with open("config/cohorts.txt", "r") as f:
+    cohorts = f.read().splitlines()
+cohorts.remove("cohorts")
+
+# Get cancer types:
+with open("config/cancer_types.txt", "r") as f:
+    cancer_types = f.read().splitlines()
+cancer_types.remove("cancer_type")
+
 
 # Function to train the XGBoost model, calculate SHAP values, and calculate OR for a fold
 def train_model(train_index, test_index, X, y, conf, group):
@@ -57,20 +84,25 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort):
             y = data[treatment]
             r = data[group]
 
-            n_rep = 100
             odds_ratios = []
 
             # outer loop
-            for i in tqdm(range(n_rep)):
+            for i in tqdm(range(NREP)):
 
                 # normal k-fold cross validation
-                kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=i)
+                kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=i)
 
                 # Inner loop, in each fold, running in parallel
-                ORs = Parallel(n_jobs=num_processes)(
-                    delayed(train_model)(train_index, test_index, X, y, conf, group)
-                    for train_index, test_index in tqdm(kf.split(X, r))
-                )
+                try:
+                    ORs = Parallel(n_jobs=N_FOLDS)(
+                        delayed(train_model)(train_index, test_index, X, y, conf, group)
+                        for train_index, test_index in tqdm(kf.split(X, r))
+                    )
+                except:
+                    ORs = Parallel(n_jobs=-1)(
+                        delayed(train_model)(train_index, test_index, X, y, conf, group)
+                        for train_index, test_index in tqdm(kf.split(X, r))
+                    )
 
                 # Calculate odds ratio based on all 5 folds
                 odds_ratio = np.mean(ORs)
@@ -103,26 +135,6 @@ def check_columns_in_df(df, columns):
     else:
         return True
 
-
-# now read treatment from txt
-with open("config/treatments.txt", "r") as f:
-    treatments = f.read().splitlines()
-treatments.remove("treatment")
-
-# read features from list in txt
-with open("config/confounders.txt", "r") as f:
-    confounders = f.read().splitlines()
-confounders.remove("confounder")
-
-# Get the cohorts
-with open("config/cohorts.txt", "r") as f:
-    cohorts = f.read().splitlines()
-cohorts.remove("cohorts")
-
-# Get cancer types:
-with open("config/cancer_types.txt", "r") as f:
-    cancer_types = f.read().splitlines()
-cancer_types.remove("cancer_type")
 
 # create dataframes to store results
 results_df = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
@@ -161,4 +173,14 @@ for cohort in cohorts:
     results_df = pd.concat([results_df, results], ignore_index=True)
 
 # save results as we go
-results_df.to_csv(f"results/models/{setting}.csv", index=False)
+try:
+    results_df.to_csv(f"results/models/{setting}.csv", index=False)
+# if folder does not exist, create it and save results
+except FileNotFoundError:
+    try:
+        os.mkdir("results/models")
+        results_df.to_csv(f"results/models/{setting}.csv", index=False)
+    except:
+        # setting contains a slash, so we need to create the folder
+        os.mkdir(f"results/models/{setting.split('/')[0]}")
+        results_df.to_csv(f"results/models/{setting}.csv", index=False)
