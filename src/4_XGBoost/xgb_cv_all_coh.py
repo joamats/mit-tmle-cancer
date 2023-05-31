@@ -1,20 +1,16 @@
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-import shap
 from xgboost import XGBClassifier
 from sklearn.model_selection import StratifiedKFold
 from joblib import Parallel, delayed
-import re
 import os
 
-from numba.core.errors import NumbaDeprecationWarning, NumbaPendingDeprecationWarning
+# ignore shap warnings
 import warnings
-# ignore all warnings
-warnings.simplefilter('ignore')
+warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 
-warnings.simplefilter('ignore', category=NumbaDeprecationWarning)
-warnings.simplefilter('ignore', category=NumbaPendingDeprecationWarning)
+import shap
 
 setting = "sens/xgb_cv_all_coh"
 
@@ -22,7 +18,7 @@ setting = "sens/xgb_cv_all_coh"
 # Number of folds used in cross-validation (also used as parallel processes)
 N_FOLDS = 5
 # Tests per cohort
-NREP = 1
+NREP = 50
 
 ### Get the data ###
 # now read treatment from txt
@@ -205,3 +201,4 @@ except:
         # setting contains a slash, so we need to create the folder
         os.mkdir(f"results/models/{setting.split('/')[0]}")
         results_df.to_csv(f"results/models/{setting}.csv", index=False)
+        
