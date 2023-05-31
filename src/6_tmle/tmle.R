@@ -3,8 +3,6 @@ library(pROC)
 library(data.table)
 
 ### Constants ###
-NREP <- 50
-
 setting <- "tmle_results"
 
 ### Get the data ###
@@ -20,20 +18,12 @@ outcomes <- read.delim("config/outcomes_test.txt")$outcome
 
 # Get the cohorts
 cohorts <- read.delim("config/cohorts.txt")$cohorts
-# Convert confounders to a list
 
 # Get cancer types:
 cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
-#cancer_types <- cancer_types[cancer_types != "cancer_type"]
 
 # Define the SL library
 SL_library <- read.delim("config/SL_libraries_base.txt")
-
-# Define the treatment effect function (Delta)
-my_delta <- function(Y, A) {
-  # Calculate the treatment effect (e.g., difference in means)
-  mean(Y[A == 1]) - mean(Y[A == 0])
-}
 
 
 # run TMLE 
@@ -56,8 +46,6 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                 )
 
     log <- summary(result)
-
-    print(names(results_df))
 
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
@@ -146,9 +134,6 @@ for (cohort in cohorts) {
         df <- read.csv("data/cohorts/merged_all.csv")
         group <- "has_cancer"
         cohort <- "cancer"
-        
-        # Get provisional cofounders from the data frame using the dtypes and excluding the treatments
-        # confounders <- colnames(df)[sapply(df, function(x) is.numeric(x) | is.integer(x)) & !(colnames(df) %in% treatments)  & !(colnames(df) %in% outcomes)]
 
         results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
     } 
@@ -158,10 +143,7 @@ for (cohort in cohorts) {
             cat(paste("Getting data for cancer type:", cancer_type), "\n")
             df <- read.csv("data/cohorts/merged_cancer.csv")
             cohort <- cancer_type
-            
-            # Get provisional cofounders from the data frame using the dtypes and excluding the treatments
-            # confounders <- colnames(df)[sapply(df, function(x) is.numeric(x) | is.integer(x)) & !(colnames(df) %in% treatments) & !(colnames(df) %in% outcomes)]
- 
+
             results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
         }
     } else {
