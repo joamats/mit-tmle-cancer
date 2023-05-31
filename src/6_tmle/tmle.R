@@ -15,13 +15,12 @@ treatments <- read.delim("config/treatments.txt")$treatment
 confounders <- read.delim("config/confounders_test.txt")$confounder
 
 # read the cofounders from list in txt
-#outcomes <- readLines("config/outcomes.txt")$outcome
-outcomes <- c('mortality_in') #outcomes[outcomes != "outcome"]
+###### TODO: change txt
+outcomes <- read.delim("config/outcomes_test.txt")$outcome
 
 # Get the cohorts
 cohorts <- read.delim("config/cohorts.txt")$cohorts
 # Convert confounders to a list
-#confounders <- as.list(confounders)
 
 # Get cancer types:
 cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
@@ -44,8 +43,6 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
-
-    print(tmle_fit)
     
     result <- tmle(
                 Y = Y,
@@ -58,7 +55,9 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                 Q.SL.library = SL_libraries$SL_library
                 )
 
-    log <- summary(result)   
+    log <- summary(result)
+
+    print(names(results_df))
 
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
@@ -82,6 +81,8 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
 calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confounders, cohort, results_df, SL_libraries) {
 
     for (outcome in outcomes) {
+        print('***************')
+        cat(paste("Outcomes:", outcome), "\n")
         # Get the treatments:
         for (treatment in treatments) {
             cat(paste("Doing the prediction for treatment:", treatment), "\n")
@@ -121,7 +122,7 @@ check_columns_in_df <- function(df, columns) {
 }
 
 # create data.frames to store results
-results_df <- data.frame(matrix(ncol=14, nrow=0))
+results_df <- data.frame(matrix(ncol=13, nrow=0))
 colnames(results_df) <- c(
                         "outcome",
                         "treatment",
