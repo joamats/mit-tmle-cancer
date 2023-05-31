@@ -12,8 +12,7 @@ setting <- "tmle_results"
 treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
-confounders <- read.delim("config/confounders.txt")$confounder
-confounders <- as.list(confounders)
+confounders <- read.delim("config/confounders_test.txt")$confounder
 
 # read the cofounders from list in txt
 #outcomes <- readLines("config/outcomes.txt")$outcome
@@ -45,30 +44,19 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
-    
-    print(nrow(W))
-    print(length(A)) 
-    print(length(Y))
-
-tmle_fit <- tmle::tmle(
-        Y = Y, # outcome vector
-        A = A, # treatment vector
-        W = W, # matrix of confounders W1, W2, W3, W4
-        Q.SL.library = SL_libraries$SL_library, # superlearning libraries from earlier for outcome regression Q(A,W)
-        g.SL.library = SL_libraries$SL_library) # superlearning libraries from earlier for treatment regression g(W)
 
     print(tmle_fit)
     
-    # result <- tmle(
-    #             Y = Y,
-    #             A = A,
-    #             W = W,
-    #             #Delta = my_delta,
-    #             family = "binomial", 
-    #             gbound = c(0.05, 0.95),
-    #             g.SL.library = SL_libraries$SL_library,
-    #             Q.SL.library = SL_libraries$SL_library
-    #             )
+    result <- tmle(
+                Y = Y,
+                A = A,
+                W = W,
+                #Delta = my_delta,
+                family = "binomial", 
+                gbound = c(0.05, 0.95),
+                g.SL.library = SL_libraries$SL_library,
+                Q.SL.library = SL_libraries$SL_library
+                )
 
     log <- summary(result)   
 
@@ -150,7 +138,6 @@ colnames(results_df) <- c(
                         "Q_weights",
                         "g_weights")
                     
-
 group <- ""
 for (cohort in cohorts) {
     if (cohort == "cancer_vs_nocancer") {
@@ -160,12 +147,8 @@ for (cohort in cohorts) {
         cohort <- "cancer"
         
         # Get provisional cofounders from the data frame using the dtypes and excluding the treatments
-        confounders <- colnames(df)[sapply(df, function(x) is.numeric(x) | is.integer(x)) & !(colnames(df) %in% treatments)  & !(colnames(df) %in% outcomes)]
-        cat("Confounders:", confounders, "\n")
-        check <- check_columns_in_df(df, confounders)
-        if (!check) {
-            next
-        }
+        # confounders <- colnames(df)[sapply(df, function(x) is.numeric(x) | is.integer(x)) & !(colnames(df) %in% treatments)  & !(colnames(df) %in% outcomes)]
+
         results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
     } 
     else if (cohort == "cancer_type") {
@@ -176,13 +159,8 @@ for (cohort in cohorts) {
             cohort <- cancer_type
             
             # Get provisional cofounders from the data frame using the dtypes and excluding the treatments
-            confounders <- colnames(df)[sapply(df, function(x) is.numeric(x) | is.integer(x)) & !(colnames(df) %in% treatments) & !(colnames(df) %in% outcomes)]
-            cat("Confounders:", confounders, "\n")
-            check <- check_columns_in_df(df, confounders)
-            if (!check) {
-                next
-            }   
-            
+            # confounders <- colnames(df)[sapply(df, function(x) is.numeric(x) | is.integer(x)) & !(colnames(df) %in% treatments) & !(colnames(df) %in% outcomes)]
+ 
             results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
         }
     } else {
