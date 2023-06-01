@@ -1,11 +1,5 @@
 outcome
 mortality_in
-blood_yes
+odd_hour
 free_days_hosp_28
-free_days_mv_28
-free_days_rrt_28
-free_days_vp_28
-clabsi
-cauti
-ssi
-vap
+comb_noso

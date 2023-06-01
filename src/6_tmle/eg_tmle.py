@@ -36,7 +36,7 @@ all_preds = np.zeros((data.shape[0], len(models)))
 # Loop through each model, fit it on the data, and obtain predictions
 for i, model in enumerate(models):
     model.fit(data[covariates], data[treatment])
-    preds = model.predict(data[covariates])
+    preds = model.predict_proba(data[covariates])[:, 1]
     all_preds[:, i] = preds
 
 # Calculate the predicted probabilities of treatment
@@ -46,6 +46,8 @@ print("Super Learner Probabilities:", super_learner_prob.shape)
 
 # Instantiate the TMLE class
 tmle_learner = TMLELearner(learner=models[0])
+
+print(super_learner_prob.shape)
 
 # Estimate treatment effects
 te = tmle_learner.estimate_ate(data[covariates], data[outcome], data[treatment], super_learner_prob)

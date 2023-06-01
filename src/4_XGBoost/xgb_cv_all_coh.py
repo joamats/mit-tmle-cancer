@@ -158,7 +158,7 @@ for cohort in cohorts:
         cohort = 'cancer'
 
         """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
-        confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
+        #confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
         print(f"Confounders: {confounders}")
         check = check_columns_in_df(df, confounders)
         if check == False:
@@ -176,7 +176,7 @@ for cohort in cohorts:
             cohort = cancer_type
 
             """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
-            confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
+            #confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
             print(f"Confounders: {confounders}")
             check = check_columns_in_df(df, confounders)
             if check == False:
