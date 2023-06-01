@@ -1,6 +1,6 @@
 confounder
-admission_age
-gender
+anchor_age
+sex_female
 ethnicity_white
 anchor_year_group
 adm_elective
@@ -16,6 +16,10 @@ cardiovascular
 cns
 renal
 charlson_cont
+hospitalid
+numbedscategory
+teachingstatus
+region
 resp_rate_mean
 mbp_mean
 heart_rate_mean

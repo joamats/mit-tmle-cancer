@@ -40,29 +40,28 @@ SELECT DISTINCT
   , icu.icustay_seq
   , icu.first_icu_stay
   , CASE WHEN s3.sepsis3 IS TRUE THEN 1 ELSE 0 END AS sepsis3
-  , charlson.charlson_comorbidity_index AS CCI
+  
+  -- Scores
+  , charlson.charlson_comorbidity_index AS charlson_cont
   , CASE 
       WHEN ( charlson.charlson_comorbidity_index >= 0 AND charlson.charlson_comorbidity_index <= 3) THEN "0-3"
       WHEN ( charlson.charlson_comorbidity_index >= 4 AND charlson.charlson_comorbidity_index <= 6) THEN "4-6" 
       WHEN ( charlson.charlson_comorbidity_index >= 7 AND charlson.charlson_comorbidity_index <= 10) THEN "7-10" 
       WHEN ( charlson.charlson_comorbidity_index > 10) THEN ">10" 
     END AS CCI_ranges
-    
-  , sf.SOFA
-  , CASE 
-      WHEN ( SOFA >= 0 AND SOFA <= 3) THEN "0-3"
-      WHEN ( SOFA >= 4 AND SOFA <= 6) THEN "4-6" 
-      WHEN ( SOFA >= 7 AND SOFA <= 10) THEN "7-10" 
-      WHEN ( SOFA > 10) THEN ">10" 
-    END AS SOFA_ranges
 
-  , oa.oasis AS OASIS
-  , CASE 
-      WHEN ( OASIS >= 0 AND OASIS <= 37) THEN "0-37"
-      WHEN ( OASIS >= 38 AND OASIS <= 45) THEN "38-45" 
-      WHEN ( OASIS >= 46 AND OASIS <= 51) THEN "46-51" 
-      WHEN ( OASIS > 51) THEN ">51" 
-    END AS OASIS_ranges
+  , oa.oasis 
+  , oa.oasis_prob
+  , sf.sofa AS SOFA, sf.respiration, sf.coagulation, sf.liver, sf.cardiovascular, sf.cns, sf.renal,
+
+-- Vitals
+  resp_rate_mean, mbp_mean, heart_rate_mean, temperature_mean, spo2_mean, 
+
+-- lab values 
+  po2_min, pco2_max, ph_min, lactate_max, glucose_max, sodium_min, potassium_max, cortisol_min, hemoglobin_min, fibrinogen_min, inr_max, 
+
+
+  ABS(TIMESTAMP_DIFF(pat.dod,icu.icu_outtime,DAY)) as dod_icuout_offset
 
 -- Treatments and their durations
   , CASE
@@ -149,6 +148,7 @@ END AS VP_init_offset_d_abs,
 "true" AS teachingstatus, -- is boolean in eICU
 "Northeast" AS region -- dummy variable for US census region in eICU
 
+  , major_surgery
   , cancer.has_cancer
   , cancer.group_solid
   , cancer.group_metastasized
@@ -166,11 +166,23 @@ END AS VP_init_offset_d_abs,
   , cancer.loc_thyroid
   , cancer.loc_nhl
   , cancer.loc_leukemia
-  , coms.hypertension_present AS com_hypertension_present
-  , coms.heart_failure_present AS com_heart_failure_present
-  , coms.copd_present AS com_copd_present
-  , coms.asthma_present AS com_asthma_present
-  , coms.ckd_stages AS com_ckd_stages
+  , coms.hypertension_present
+  , coms.heart_failure_present
+  , coms.copd_present
+  , coms.asthma_present
+  , coms.ckd_stages
+  , coms.cad_present
+  , coms.ckd_stages
+  , coms.diabetes_types
+  , coms.connective_disease
+  , coms.pneumonia
+  , coms.uti
+  , coms.biliary
+  , coms.skin
+  , coms.clabsi
+  , coms.cauti
+  , coms.ssi
+  , coms.vap
 
   , CASE
       WHEN codes.first_code IS NULL
@@ -202,7 +214,9 @@ END AS VP_init_offset_d_abs,
     ELSE 0
   END AS mortality_90
   
-
+  , icu.admittime
+  , icu.dischtime
+  
 -- ICU stays
 FROM physionet-data.mimiciv_derived.icustay_detail
 AS icu 
@@ -239,6 +253,70 @@ ON icu.hadm_id = charlson.hadm_id
 
 LEFT JOIN `physionet-data.mimiciv_derived.first_day_urine_output` AS fd_uo
 ON icu.stay_id = fd_uo.stay_id 
+
+-- Add Vital Signs
+LEFT JOIN(
+  SELECT
+      stay_id
+    , resp_rate_mean
+    , mbp_mean
+    , heart_rate_mean
+    , temperature_mean
+    , spo2_mean
+  FROM `db_name.mimiciv_derived.first_day_vitalsign`
+) AS vs
+ON vs.stay_id = icu.stay_id
+
+-- Add Lab from original table
+-- minimal whole stay cortisol and hemoglobin
+LEFT JOIN (
+SELECT hadm_id,
+MIN(
+    CASE
+    WHEN lab.itemid IN (50909) THEN valuenum
+    ELSE NULL
+    END) AS cortisol_min,
+
+MIN(
+    CASE
+    WHEN lab.itemid IN (50811, 51222) THEN valuenum
+    ELSE NULL
+    END) AS hemoglobin_min
+
+FROM `physionet-data.mimiciv_hosp.labevents` AS lab
+where itemid IN (50909, 50811, 51222)
+GROUP BY hadm_id
+)
+AS lab
+ON lab.hadm_id = icu.hadm_id
+
+-- Add Lab values from derived tables
+LEFT JOIN (
+SELECT stay_id,
+glucose_max, sodium_min, potassium_max,
+fibrinogen_min, inr_max
+FROM `physionet-data.mimiciv_derived.first_day_lab` AS dl
+)
+AS dl
+ON dl.stay_id = icu.stay_id
+
+LEFT JOIN (
+SELECT stay_id,
+ph_min, lactate_max 
+
+FROM `physionet-data.mimiciv_derived.first_day_bg` AS bg
+)
+AS bg
+ON bg.stay_id = icu.stay_id
+
+LEFT JOIN (
+SELECT stay_id,
+po2_min, pco2_max
+
+FROM `physionet-data.mimiciv_derived.first_day_bg_art` AS bgart
+)
+AS bgart
+ON bgart.stay_id = icu.stay_id
 
 -- Mechanical Ventilation
 LEFT JOIN (
@@ -376,7 +454,7 @@ ON adm.hadm_id = icu.hadm_id
 LEFT JOIN (
   SELECT 
     stay_id
-  , oasis
+  , oasis, oasis_prob
   FROM `physionet-data.mimiciv_derived.oasis`
 )
 AS oa
@@ -405,5 +483,34 @@ LEFT JOIN(
 )
 AS codes
 ON codes.stay_id = icu.stay_id
+
+-- Add major surgery based on Alistair's OASIS implementation
+LEFT JOIN (
+ 
+ WITH surgflag as (
+ SELECT ie.stay_id
+        , MAX(CASE
+            WHEN LOWER(curr_service) LIKE '%surg%' THEN 1
+            WHEN curr_service = 'ORTHO' THEN 1
+            ELSE NULL END) AS major_surgery
+        
+        , MAX(CASE
+            WHEN first_careunit LIKE  "%SICU%" AND
+            first_careunit NOT LIKE "%MICU/SICU%"  THEN 1
+            ELSE NULL END) AS surgical_icu
+
+    FROM mimiciv_icu.icustays ie
+
+    LEFT JOIN mimiciv_hosp.services se
+        ON ie.hadm_id = se.hadm_id
+        AND se.transfertime < DATETIME_ADD(ie.intime, INTERVAL '2' DAY)
+    GROUP BY ie.stay_id
+ )  
+  SELECT *
+  FROM surgflag
+  WHERE major_surgery = 1 OR surgical_icu = 1
+) 
+AS ms
+ON ms.stay_id = icu.stay_id
 
 ORDER BY icu.subject_id, icu.hadm_id, icu.stay_id

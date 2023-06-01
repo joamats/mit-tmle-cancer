@@ -7,19 +7,23 @@
 ### 1. Clone this repository
 
 Run the following command in your terminal.
+
 ```sh
 git clone https://github.com/joamats/mit-tmle-cancer.git
 ```
 
 ### 2. Install required Packages
+
 R scripts
 Run the following command in R:
+
 ```sh
 source('setup/install_packages.R')
 ```
 
 Python scripts
 Run the following command in you terminal:
+
 ```sh
 pip install -r setup/requirements_py.txt
 ```
@@ -42,6 +46,7 @@ In this section, we explain how to set up GCP and your environment in order to r
 6) Update your .env file with your ***JSON keys*** path and the ***id*** of your project in BigQuery
 
 Follow the format:
+
 ```sh
 KEYS_FILE = "../GoogleCloud_keys.json"
 PROJECT_ID = "project-id"
@@ -78,6 +83,7 @@ python3 src/2_cohorts/2_eICU.py
 ```
 
 #### MIMIC-IV
+
 ```sh
 python3 src/2_cohorts/3_MIMIC.py
 ```
@@ -87,9 +93,11 @@ This will create the files `data/cohorts/MIMIC_all.csv` and `data/cohorts/MIMIC_
 **4.2 Get a merged dataframe ready**
 
 Run the command in you R console:
-```sh  
+
+```sh
 source("src/2_cohorts/4_load_data.R")
 ```
+
 This will create the files `data/cohorts/merged_all.csv` and `data/cohorts/merged_cancer.csv`.
 
 ### 5. Get the odds ratios
@@ -97,6 +105,7 @@ This will create the files `data/cohorts/merged_all.csv` and `data/cohorts/merge
 To get the odds ratios, an XBGoost model was trained several times using a 5 fold cross validation method to calculate the probability of having each outcome given the covariates. Once the model was trained, we used the test set to calculate the SHAP values for each feature and then we used the SHAP values to calculate the odds ratios.
 
 To do so, run the following command in your terminal:
+
 ```sh
 python3 src/4_XGBoost/xgb_cv_all_coh.py
 ```
