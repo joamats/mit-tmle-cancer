@@ -29,10 +29,10 @@ SELECT DISTINCT
 
   , yug.Charlson as charlson_cont
   , CASE 
-      WHEN ( yug.Charlson >= 0 AND yug.Charlson <= 3) THEN "0-3"
-      WHEN ( yug.Charlson >= 4 AND yug.Charlson <= 6) THEN "4-6" 
-      WHEN ( yug.Charlson >= 7 AND yug.Charlson <= 10) THEN "7-10" 
-      WHEN ( yug.Charlson > 10) THEN ">10" 
+      WHEN (yug.Charlson >= 0 AND yug.Charlson <= 3) THEN "0-3"
+      WHEN (yug.Charlson >= 4 AND yug.Charlson <= 6) THEN "4-6" 
+      WHEN (yug.Charlson >= 7 AND yug.Charlson <= 10) THEN "7-10" 
+      WHEN (yug.Charlson > 10) THEN ">10" 
     END AS CCI_ranges
 
   , yug.sofa_admit as SOFA 
@@ -68,15 +68,16 @@ SELECT DISTINCT
       ELSE 0
     END AS vasopressor
   
-  , vent_start_offset
-  , rrt_start_offset
-  , vp_start_offset
+  -- , vent_start_offset
+  -- , rrt_start_offset
+  -- , vp_start_offset
 
-  , SAFE_DIVIDE(vent_start_offset,(24*60)) AS mv_time_d -- convert from minutes to days, in MIMIC it's from hours to days
-  , SAFE_DIVIDE(rrt_start_offset,(24*60)) AS rrt_time_d
-  , SAFE_DIVIDE(vp_start_offset,(24*60)) AS vp_time_d
-  , SAFE_DIVIDE(SAFE_DIVIDE(vent_duration,(24*60)),yug.los_icu) AS MV_time_perc_of_stay
- -- , SAFE_DIVIDE(SAFE_DIVIDE(vp_time_hr,(24*60)),yug.los_icu) AS VP_time_perc_of_stay -- omitted as not easily feasible in eICU
+-- Convert offset from minutes to fraction of day
+  , SAFE_DIVIDE(vent_start_offset,(24*60)) AS MV_init_offset_d_abs -- convert from minutes to days, in MIMIC it's from hours to days
+  , SAFE_DIVIDE(rrt_start_offset,(24*60)) AS RRT_init_offset_d_abs
+  , SAFE_DIVIDE(vp_start_offset,(24*60)) AS VP_init_offset_d_abs
+ -- , SAFE_DIVIDE(SAFE_DIVIDE(vent_duration,(24*60)),yug.los_icu) AS MV_time_perc_of_stay
+ -- , SAFE_DIVIDE(SAFE_DIVIDE(vp_time_d,(24*60)),yug.los_icu) AS VP_time_perc_of_stay -- omitted as not easily feasible in eICU
 
 -- comorbidities
   , cancer.has_cancer

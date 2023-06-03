@@ -1,4 +1,0 @@
-confounder
-sex_female
-anchor_age
-CCI

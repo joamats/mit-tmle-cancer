@@ -82,23 +82,23 @@ SELECT DISTINCT
       ELSE 0
     END AS vasopressor
 
-, SAFE_DIVIDE(MV_time_hr,24) AS mv_time_d
-, SAFE_DIVIDE(vp_time_hr,24) AS vp_time_d
-, SAFE_DIVIDE(rrt_time_hr,24) AS rrt_time_d
-, SAFE_DIVIDE(SAFE_DIVIDE(MV_time_hr,24),icu.los_icu) AS MV_time_perc_of_stay
-, SAFE_DIVIDE(SAFE_DIVIDE(vp_time_hr,24),icu.los_icu) AS VP_time_perc_of_stay,
+-- , SAFE_DIVIDE(MV_time_hr,24) AS mv_time_d
+-- , SAFE_DIVIDE(vp_time_hr,24) AS vp_time_d
+-- , SAFE_DIVIDE(rrt_time_hr,24) AS rrt_time_d
+-- , SAFE_DIVIDE(SAFE_DIVIDE(MV_time_hr,24),icu.los_icu) AS MV_time_perc_of_stay
+-- , SAFE_DIVIDE(SAFE_DIVIDE(vp_time_hr,24),icu.los_icu) AS VP_time_perc_of_stay,
 
 -- MV as offset as fraction of LOS
-CASE
-  WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
-  THEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR)/24/icu.los_icu
-  WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) <= 0
-  THEN 0
-  ELSE NULL
-END AS MV_init_offset_perc,
+-- CASE
+--   WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
+--   THEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR)/24/icu.los_icu
+--   WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) <= 0
+--   THEN 0
+--   ELSE NULL
+-- END AS MV_init_offset_perc,
 
 -- MV as offset absolut in days
-CASE
+, CASE
   WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
   THEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR)/24
   WHEN TIMESTAMP_DIFF(mv_mtime.starttime, icu.icu_intime, HOUR) <= 0
@@ -107,13 +107,13 @@ CASE
 END AS MV_init_offset_d_abs,
 
 -- RRT as offset as fraction of LOS
-CASE
-  WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) >= 0.01
-  THEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR)/24/icu.los_icu
-  WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) <= 0
-  THEN 0
-  ELSE NULL
-END AS RRT_init_offset_perc,
+-- CASE
+--   WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) >= 0.01
+--   THEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR)/24/icu.los_icu
+--   WHEN TIMESTAMP_DIFF(rrt_time.charttime, icu.icu_intime, HOUR) <= 0
+--   THEN 0
+--   ELSE NULL
+-- END AS RRT_init_offset_perc,
 
 -- RRT as offset absolut in days
 CASE
@@ -125,13 +125,13 @@ CASE
 END AS RRT_init_offset_d_abs,
 
 -- VP as offset as fraction of LOS
-CASE
-  WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
-  THEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR)/24/icu.los_icu
-  WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) <= 0
-  THEN 0
-  ELSE NULL
-END AS VP_init_offset_perc,
+-- CASE
+--   WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) >= 0.01
+--   THEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR)/24/icu.los_icu
+--   WHEN TIMESTAMP_DIFF(vp_mtime.starttime, icu.icu_intime, HOUR) <= 0
+--   THEN 0
+--   ELSE NULL
+-- END AS VP_init_offset_perc,
 
 -- VP as offset absolut in days
 CASE
