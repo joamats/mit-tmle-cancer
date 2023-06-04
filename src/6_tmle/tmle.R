@@ -2,19 +2,16 @@ library(tmle)
 library(pROC)
 library(data.table)
 
-### Constants ###
-setting <- "tmle_results"
-
 ### Get the data ###
 # now read treatment from txt
 treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
-confounders <- read.delim("config/confounders_test.txt")$confounder
+confounders <- read.delim("config/confounders.txt")$confounder
 
 # read the cofounders from list in txt
 ###### TODO: change txt
-outcomes <- read.delim("config/outcomes_test.txt")$outcome
+outcomes <- read.delim("config/outcomes.txt")$outcome
 
 # Get the cohorts
 cohorts <- read.delim("config/cohorts.txt")$cohorts
@@ -25,10 +22,9 @@ cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 # Define the SL library
 SL_library <- read.delim("config/SL_libraries_base.txt")
 
-
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
-                     cohort, sev_min, sev_max, results_df) {
+                     cohort, sev_min, sev_max, results_df, group_true) {
 
     W <- data[, confounders]
     A <- data[, treatment]
@@ -50,7 +46,7 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
                                             cohort,
-                                            #race,
+                                            group_true,
                                             sev_min,
                                             sev_max,
                                             log$estimates$ATE$psi,
@@ -77,21 +73,29 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
         
             for (group in groups) {
                 cat(paste("Group:", group), "\n")
-                
-                data_subset <- subset(data, data[[group]] == 1)
-                
+
                 # append treatments that are not the current one to confounders
                 # select X, y
-                conf <- c()
-                for (confounder in confounders) {
-                    if (confounder != treatment) {
-                        # Append treatment to confounders
-                        conf <- c(conf, confounder)
-                    }
-                }
-                
+                # conf <- c()
+                # for (confounder in confounders) {
+                #     if (confounder != treatment) {
+                #         # Append treatment to confounders
+                #         conf <- c(conf, confounder)
+                #     }
+                # }
+
+                # Get the data for the current group
+                # When group is true: group = 1
+                group_true = 1
+                data_subset <- subset(data, data[[group]] == group_true)
                 results_df = run_tmle(data_subset, treatment, conf, outcome, SL_libraries,
-                     cohort, sev_min=0, sev_max=1, results_df)
+                     cohort, sev_min=0, sev_max=1, results_df, group_true)
+
+                # When group is false: group = 0
+                group_true = 0
+                data_subset <- subset(data, data[[group]] == group_true)
+                results_df = run_tmle(data_subset, treatment, conf, outcome, SL_libraries,
+                     cohort, sev_min=0, sev_max=1, results_df, group_true)
             }
         }
     }
@@ -108,51 +112,76 @@ check_columns_in_df <- function(df, columns) {
     return(TRUE)
   }
 }
+databases = c("all", "eicu", "mimic")
 
-# create data.frames to store results
-results_df <- data.frame(matrix(ncol=13, nrow=0))
-colnames(results_df) <- c(
-                        "outcome",
-                        "treatment",
-                        "cohort",
-                        #"race",
-                        "prob_mort_start",
-                        "prob_mort_end",
-                        "psi",
-                        "i_ci",
-                        "s_ci",
-                        "pvalue",
-                        "n",
-                        "SL_libraries",
-                        "Q_weights",
-                        "g_weights")
-                    
-group <- ""
-for (cohort in cohorts) {
-    if (cohort == "cancer_vs_nocancer") {
-        # Get all data
-        df <- read.csv("data/cohorts/merged_all.csv")
-        group <- "has_cancer"
-        cohort <- "cancer"
+for (db in databases){
+    # create data.frames to store results
+    results_df <- data.frame(matrix(ncol=14, nrow=0))
+    colnames(results_df) <- c(
+                            "outcome",
+                            "treatment",
+                            "cohort",
+                            "group",
+                            "prob_mort_start",
+                            "prob_mort_end",
+                            "psi",
+                            "i_ci",
+                            "s_ci",
+                            "pvalue",
+                            "n",
+                            "SL_libraries",
+                            "Q_weights",
+                            "g_weights")
+                        
+    group <- ""
+    for (cohort in cohorts) {
+        if (cohort == "cancer_vs_nocancer") {
+            # Get all data
+            if (db == "all"){
+                df <- read.csv("data/cohorts/merged_all.csv")
+            } else if (db == "eicu") {
+               df <- read.csv("data/cohorts/merged_eicu_all.csv")
+            } else if (db == "mimic") {
+               df <- read.csv("data/cohorts/merged_mimic_all.csv")
+            } else {
+                cat(paste("Error:", db, "should be all, eicu or mimic"), "\n")
+                break
+            }
+            print(names(df))
 
-        results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
-    } 
-    else if (cohort == "cancer_type") {
-        for (cancer_type in cancer_types) {
-            group <- cancer_type
-            cat(paste("Getting data for cancer type:", cancer_type), "\n")
-            df <- read.csv("data/cohorts/merged_cancer.csv")
-            cohort <- cancer_type
-
+            group <- "has_cancer"
+            cohort <- "cancer"
             results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
+        } 
+        else if (cohort == "cancer_type") {
+            for (cancer_type in cancer_types) {
+                cat(paste("Getting data for cancer type:", cancer_type), "\n")
+    
+                # Get all data
+                if (db == "all"){
+                    df <- read.csv("data/cohorts/merged_cancer.csv")
+                } else if (db == "eicu") {
+                df <- read.csv("data/cohorts/merged_eicu_cancer.csv")
+                } else if (db == "mimic") {
+                df <- read.csv("data/cohorts/merged_mimic_cancer.csv")
+                } else {
+                    cat(paste("Error:", db, "should be all, eicu or mimic"), "\n")
+                    break
+                }
+
+                group <- cancer_type
+                cohort <- cancer_type
+                results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
+            }
+        } else {
+            cat(paste("Error:", cohort, "should be cancer_vs_nocancer or cancer_type or both of them"), "\n")
+            next
         }
-    } else {
-        cat(paste("Error:", cohort, "should be cancer_vs_nocancer or cancer_type or both of them"), "\n")
-        next
     }
+
+    # Save results as we go
+    dir.create("results/tmle", showWarnings = FALSE, recursive = TRUE)
+    results <- paste0('tmle_results_', db)
+    write.csv(results_df, file.path("results/tmle", paste0(results, ".csv")), row.names = FALSE)
+
 }
-
-# Save results as we go
-dir.create("results/tmle", showWarnings = FALSE, recursive = TRUE)
-write.csv(results_df, file.path("results/tmle", paste0(setting, ".csv")), row.names = FALSE)
-

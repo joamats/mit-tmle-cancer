@@ -85,6 +85,8 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort, results
             y = data[treatment]
             r = data[group]
 
+            print(X.info())
+
             odds_ratios = []
 
             # outer loop
@@ -157,9 +159,6 @@ for cohort in cohorts:
         group = 'has_cancer'
         cohort = 'cancer'
 
-        """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
-        #confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
-        print(f"Confounders: {confounders}")
         check = check_columns_in_df(df, confounders)
         if check == False:
             continue
@@ -175,9 +174,6 @@ for cohort in cohorts:
             df = pd.read_csv(f"data/cohorts/merged_cancer.csv")
             cohort = cancer_type
 
-            """ Get provisional cofounders from the dataframe using the dtypes and excluding the treatments """
-            #confounders = [col for col in df.columns if df[col].dtype in ['float64', 'int64'] and col not in treatments]
-            print(f"Confounders: {confounders}")
             check = check_columns_in_df(df, confounders)
             if check == False:
                 continue

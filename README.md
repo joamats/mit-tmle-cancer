@@ -115,7 +115,7 @@ python3 src/4_XGBoost/xgb_cv_all_coh.py
 We made it really easy for you in this part. All you have to do is:
 
 ```sh
-source("src/r/tmle.R")
+source("src/6_tmle/tmle.R")
 ```
 
 And you'll get the resulting odds ratios both for MIMIC and eICU, for both timepoints and all sensitivity analysis here: `results/tmle`

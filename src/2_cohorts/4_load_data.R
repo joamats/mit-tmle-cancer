@@ -244,7 +244,13 @@ get_merged_datasets <- function() {
 
   # save ignoring index column
   write.csv(data_all, "data/cohorts/merged_all.csv", row.names = FALSE)
+  write.csv(eicu_all, "data/cohorts/merged_eicu_all.csv", row.names = FALSE)
+  write.csv(mimic_all, "data/cohorts/merged_mimic_all.csv", row.names = FALSE)
+
   write.csv(data_cancer, "data/cohorts/merged_cancer.csv", row.names = FALSE)
+  write.csv(eicu_cancer, "data/cohorts/merged_eicu_cancer.csv", row.names = FALSE)
+  write.csv(mimic_cancer, "data/cohorts/merged_mimic_cancer.csv", row.names = FALSE)
+
   print('Done!')
 }
 
