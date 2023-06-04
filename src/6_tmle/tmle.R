@@ -7,7 +7,8 @@ library(data.table)
 treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
-confounders <- read.delim("config/confounders.txt")$confounder
+confounders <- read.delim("config/confounders_test.txt")$confounder
+print(class(confounders))
 
 # read the cofounders from list in txt
 ###### TODO: change txt
@@ -25,7 +26,7 @@ SL_library <- read.delim("config/SL_libraries_base.txt")
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min, sev_max, results_df, group_true) {
-
+    
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
@@ -75,26 +76,25 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                 cat(paste("Group:", group), "\n")
 
                 # append treatments that are not the current one to confounders
-                # select X, y
-                # conf <- c()
-                # for (confounder in confounders) {
-                #     if (confounder != treatment) {
-                #         # Append treatment to confounders
-                #         conf <- c(conf, confounder)
-                #     }
-                # }
+                conf <- c()
+                for (confounder in confounders) {
+                    if (confounder != treatment) {
+                        # Append treatment to confounders
+                        conf <- c(conf, confounder)
+                    }
+                }
 
                 # Get the data for the current group
                 # When group is true: group = 1
                 group_true = 1
                 data_subset <- subset(data, data[[group]] == group_true)
-                results_df = run_tmle(data_subset, treatment, conf, outcome, SL_libraries,
+                results_df = run_tmle(data_subset, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min=0, sev_max=1, results_df, group_true)
 
                 # When group is false: group = 0
                 group_true = 0
                 data_subset <- subset(data, data[[group]] == group_true)
-                results_df = run_tmle(data_subset, treatment, conf, outcome, SL_libraries,
+                results_df = run_tmle(data_subset, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min=0, sev_max=1, results_df, group_true)
             }
         }
