@@ -78,14 +78,12 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort, results
 
             # append treatments that are not the current one to confounders
             # select X, y
-            conf = confounders + [t for t in treatments if t != treatment] 
+            conf = confounders + [t for t in treatments if t != treatment] + [group]
 
             # compute OR based on all data
             X = data[conf]
             y = data[treatment]
             r = data[group]
-
-            print(X.info())
 
             odds_ratios = []
 
@@ -96,16 +94,21 @@ def odds_ratio_per_cohort(data, groups, treatments, confounders, cohort, results
                 kf = StratifiedKFold(n_splits=N_FOLDS, shuffle=True, random_state=i)
 
                 # Inner loop, in each fold, running in parallel
-                try:
-                    ORs = Parallel(n_jobs=N_FOLDS)(
-                        delayed(train_model)(train_index, test_index, X, y, conf, group)
-                        for train_index, test_index in tqdm(kf.split(X, r))
-                    )
-                except:
-                    ORs = Parallel(n_jobs=-1)(
-                        delayed(train_model)(train_index, test_index, X, y, conf, group)
-                        for train_index, test_index in tqdm(kf.split(X, r))
-                    )
+                ORs = Parallel(n_jobs=N_FOLDS)(
+                    delayed(train_model)(train_index, test_index, X, y, conf, group)
+                    for train_index, test_index in tqdm(kf.split(X, r))
+                )
+
+                # try:
+                #     ORs = Parallel(n_jobs=N_FOLDS)(
+                #         delayed(train_model)(train_index, test_index, X, y, conf, group)
+                #         for train_index, test_index in tqdm(kf.split(X, r))
+                #     )
+                # except:
+                #     ORs = Parallel(n_jobs=-1)(
+                #         delayed(train_model)(train_index, test_index, X, y, conf, group)
+                #         for train_index, test_index in tqdm(kf.split(X, r))
+                #     )
 
                 # Calculate odds ratio based on all 5 folds
                 odds_ratio = np.mean(ORs)
