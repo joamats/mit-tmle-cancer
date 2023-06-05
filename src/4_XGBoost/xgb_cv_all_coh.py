@@ -12,13 +12,11 @@ warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 
 import shap
 
-setting = "sens/xgb_cv_all_coh"
-
 ### Constants ###
 # Number of folds used in cross-validation (also used as parallel processes)
 N_FOLDS = 5
 # Tests per cohort
-NREP = 50
+NREP = 10
 
 ### Get the data ###
 # now read treatment from txt
@@ -143,56 +141,82 @@ def check_columns_in_df(df, columns):
     else:
         return True
 
+databases = ["all", "eicu", "mimic"]
 
-# create dataframes to store results
-results_template = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
-results_df = results_template.copy()
+for db in databases:
 
-group = ''
-for cohort in cohorts:
-    # Get the cohort data
-    if cohort == 'cancer_vs_nocancer':
-        # Get all data
-        df = pd.read_csv(f"data/cohorts/merged_all.csv")
-        group = 'has_cancer'
-        cohort = 'cancer'
+    print('#'*30, f' {db} ' ,'#'*30)
 
-        check = check_columns_in_df(df, confounders)
-        if check == False:
-            continue
 
-        results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
-        results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
+    # create dataframes to store results
+    results_template = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
+    results_df = results_template.copy()
 
-    elif cohort == 'cancer_type':
-        # Get the dataset for each cancer type
-        for cancer_type in cancer_types:
-            group = cancer_type
-            print(f"Getting data for cancer type: {cancer_type}")
-            df = pd.read_csv(f"data/cohorts/merged_cancer.csv")
-            cohort = cancer_type
+    group = ''
+    for cohort in cohorts:
+        # Get the cohort data
+        if cohort == 'cancer_vs_nocancer':
+            # Get all data
+            if db == "all":
+                df = pd.read_csv(f"data/cohorts/merged_all.csv")
+            elif db == "eicu":
+                df = pd.read_csv(f"data/cohorts/merged_eicu_all.csv")
+            elif db == "mimic":
+               df = pd.read_csv(f"data/cohorts/merged_mimic_all.csv")
+            else:
+                print(f"Error: {db}, should be all, eicu or mimic")
+                break
+
+            group = 'has_cancer'
+            cohort = 'cancer'
 
             check = check_columns_in_df(df, confounders)
             if check == False:
                 continue
-                
+
             results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
             results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
 
-    else:
-        print(f"Error: {cohort} should be cancer_vs_nocancer or cancer_type or both of them")
-        continue
+        elif cohort == 'cancer_type':
+            # Get the dataset for each cancer type
+            for cancer_type in cancer_types:
+                print(f"Getting data for cancer type: {cancer_type}")
+                # Get all data
+                if db == "all":
+                    df = pd.read_csv(f"data/cohorts/merged_cancer.csv")
+                elif db == "eicu":
+                    df = pd.read_csv(f"data/cohorts/merged_eicu_cancer.csv")
+                elif db == "mimic":
+                    df = pd.read_csv(f"data/cohorts/merged_mimic_cancer.csv")
+                else:
+                    print(f"Error: {db}, should be all, eicu or mimic")
+                    break
 
-# save results as we go
-try:
-    results_df.to_csv(f"results/models/{setting}.csv", index=False)
-# if folder does not exist, create it and save results
-except:
+                group = cancer_type
+                cohort = cancer_type
+
+                check = check_columns_in_df(df, confounders)
+                if check == False:
+                    continue
+                    
+                results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
+                results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
+
+        else:
+            print(f"Error: {cohort} should be cancer_vs_nocancer or cancer_type or both of them")
+            continue
+
+    # save results as we go
     try:
-        os.mkdir("results/models")
-        results_df.to_csv(f"results/models/{setting}.csv", index=False)
+        results = "xgb_cv_all_coh_{db}"
+        results_df.to_csv(f"results/models/{results}.csv", index=False)
+    # if folder does not exist, create it and save results
     except:
-        # setting contains a slash, so we need to create the folder
-        os.mkdir(f"results/models/{setting.split('/')[0]}")
-        results_df.to_csv(f"results/models/{setting}.csv", index=False)
-        
+        try:
+            os.mkdir("results/models")
+            results_df.to_csv(f"results/models/{results}.csv", index=False)
+        except:
+            # setting contains a slash, so we need to create the folder
+            os.mkdir(f"results/models/{results.split('/')[0]}")
+            results_df.to_csv(f"results/models/{results}.csv", index=False)
+            

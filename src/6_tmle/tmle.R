@@ -8,10 +8,8 @@ treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
 confounders <- read.delim("config/confounders_test.txt")$confounder
-print(class(confounders))
 
 # read the cofounders from list in txt
-###### TODO: change txt
 outcomes <- read.delim("config/outcomes.txt")$outcome
 
 # Get the cohorts
@@ -30,19 +28,42 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
-    
-    result <- tmle(
-                Y = Y,
-                A = A,
-                W = W,
-                #Delta = my_delta,
-                family = "binomial", 
-                gbound = c(0.05, 0.95),
-                g.SL.library = SL_libraries$SL_library,
-                Q.SL.library = SL_libraries$SL_library
-                )
+
+    if (length(unique(Y)) > 2) {
+        # Normalize continuous outcomes to be between 0 and 1
+        min.Y <- min(Y)
+        max.Y <- max(Y)
+        Y <- (Y-min.Y)/(max.Y-min.Y)
+        # Transform continuous outcomes to be between 0 and 1
+        #Y <- normalize(data[, outcome], include_bounds = TRUE, verbose = TRUE)
+        Y <- (data[, outcome]-min.Y)/(max.Y-min.Y)
+
+        result <- tmle(
+            Y = Y,
+            A = A,
+            W = W,
+            #Delta = my_delta,
+            family = "gaussian", 
+            gbound = c(0.05, 0.95),
+            g.SL.library = SL_libraries$SL_library,
+            Q.SL.library = SL_libraries$SL_library
+            )
+    }
+    else{
+        result <- tmle(
+                    Y = Y,
+                    A = A,
+                    W = W,
+                    #Delta = my_delta,
+                    family = "binomial", 
+                    gbound = c(0.05, 0.95),
+                    g.SL.library = SL_libraries$SL_library,
+                    Q.SL.library = SL_libraries$SL_library
+                    )
+    }
 
     log <- summary(result)
+    print(log)
 
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
@@ -112,9 +133,14 @@ check_columns_in_df <- function(df, columns) {
     return(TRUE)
   }
 }
+
 databases = c("all", "eicu", "mimic")
 
 for (db in databases){
+  print('***************')
+  print(db)
+  print('***************')
+  
     # create data.frames to store results
     results_df <- data.frame(matrix(ncol=14, nrow=0))
     colnames(results_df) <- c(
@@ -147,7 +173,6 @@ for (db in databases){
                 cat(paste("Error:", db, "should be all, eicu or mimic"), "\n")
                 break
             }
-            print(names(df))
 
             group <- "has_cancer"
             cohort <- "cancer"
