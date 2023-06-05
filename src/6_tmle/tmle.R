@@ -7,7 +7,7 @@ library(data.table)
 treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
-confounders <- read.delim("config/confounders_test.txt")$confounder
+confounders <- read.delim("config/confounders.txt")$confounder
 
 # read the cofounders from list in txt
 outcomes <- read.delim("config/outcomes.txt")$outcome
@@ -21,15 +21,22 @@ cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 # Define the SL library
 SL_library <- read.delim("config/SL_libraries_base.txt")
 
+# Define predicted mortality ranges
+prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
+
+# First iteration
+FIRST <- TRUE
+
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min, sev_max, results_df, group_true) {
-    
+
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
 
     if (length(unique(Y)) > 2) {
+        
         # Normalize continuous outcomes to be between 0 and 1
         min.Y <- min(Y)
         max.Y <- max(Y)
@@ -48,8 +55,21 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
             g.SL.library = SL_libraries$SL_library,
             Q.SL.library = SL_libraries$SL_library
             )
+
+    log <- summary(result) 
+    
+    RR <- 0
+
+    # Transform back the ATE estimate
+    log$estimates$ATE$psi <- (max.Y-min.Y)*log$estimates$ATE$psi
+
+    # Transform back the CI estimate
+    log$estimates$ATE$CI[1] <- (max.Y-min.Y)*log$estimates$ATE$CI[1]
+    log$estimates$ATE$CI[2] <- (max.Y-min.Y)*log$estimates$ATE$CI[2]
+
     }
-    else{
+
+    else {
         result <- tmle(
                     Y = Y,
                     A = A,
@@ -60,10 +80,13 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                     g.SL.library = SL_libraries$SL_library,
                     Q.SL.library = SL_libraries$SL_library
                     )
+    log <- summary(result)
+    
+    RR <- log$estimates$RR$psi # output RR for calculating the e-value 
     }
 
-    log <- summary(result)
-    print(log)
+    print('***************')
+   #print(log)
 
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
@@ -78,7 +101,8 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                                             nrow(data),
                                             paste(SL_libraries$SL_library, collapse = " "),
                                             paste(result$Qinit$coef, collapse = " "),
-                                            paste(result$g$coef, collapse = " ")
+                                            paste(result$g$coef, collapse = " "),
+                                            RR                                    
                                             ) 
     return (results_df)
 }
@@ -108,15 +132,47 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                 # Get the data for the current group
                 # When group is true: group = 1
                 group_true = 1
-                data_subset <- subset(data, data[[group]] == group_true)
-                results_df = run_tmle(data_subset, treatment, confounders, outcome, SL_libraries,
-                     cohort, sev_min=0, sev_max=1, results_df, group_true)
+                data_subset <- subset(data, data[[group]] == 1)
+
+                for (i in 1:nrow(prob_mort_ranges)) {
+                    
+                    sev_min <- prob_mort_ranges$min[i]
+                    sev_max <- prob_mort_ranges$max[i]
+
+                    print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                    # Stratify by prob_mort
+                    data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+                    
+                    # Run TMLE
+                    results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                     cohort, sev_min, sev_max, results_df, group_true)
+
+                }
 
                 # When group is false: group = 0
-                group_true = 0
-                data_subset <- subset(data, data[[group]] == group_true)
-                results_df = run_tmle(data_subset, treatment, confounders, outcome, SL_libraries,
-                     cohort, sev_min=0, sev_max=1, results_df, group_true)
+                if (FIRST == TRUE) {
+                    
+                    FIRST <- FALSE
+                    
+                    group_true = 0
+                    data_subset <- subset(data, data[["has_cancer"]] == 0)
+                    
+                    for (i in 1:nrow(prob_mort_ranges)) {
+                        
+                        sev_min <- prob_mort_ranges$min[i]
+                        sev_max <- prob_mort_ranges$max[i]
+
+                        print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                        # Stratify by prob_mort
+                        data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+                        
+                        # Run TMLE
+                        results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                        cohort, sev_min, sev_max, results_df, group_true)
+                    }
+                }
             }
         }
     }
@@ -142,22 +198,24 @@ for (db in databases){
   print('***************')
   
     # create data.frames to store results
-    results_df <- data.frame(matrix(ncol=14, nrow=0))
+    results_df <- data.frame(matrix(ncol=15, nrow=0))
     colnames(results_df) <- c(
                             "outcome",
                             "treatment",
                             "cohort",
-                            "group",
+                            "has_cancer",
                             "prob_mort_start",
                             "prob_mort_end",
-                            "psi",
+                            "ATE",
                             "i_ci",
                             "s_ci",
                             "pvalue",
                             "n",
                             "SL_libraries",
                             "Q_weights",
-                            "g_weights")
+                            "g_weights",
+                            "RR"
+                           )
                         
     group <- ""
     for (cohort in cohorts) {
@@ -184,11 +242,11 @@ for (db in databases){
     
                 # Get all data
                 if (db == "all"){
-                    df <- read.csv("data/cohorts/merged_cancer.csv")
+                    df <- read.csv("data/cohorts/merged_all.csv")
                 } else if (db == "eicu") {
-                df <- read.csv("data/cohorts/merged_eicu_cancer.csv")
+                df <- read.csv("data/cohorts/merged_eicu_all.csv")
                 } else if (db == "mimic") {
-                df <- read.csv("data/cohorts/merged_mimic_cancer.csv")
+                df <- read.csv("data/cohorts/merged_mimic_all.csv")
                 } else {
                     cat(paste("Error:", db, "should be all, eicu or mimic"), "\n")
                     break
@@ -196,7 +254,7 @@ for (db in databases){
 
                 group <- cancer_type
                 cohort <- cancer_type
-                results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
+                results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_nocancer"), results_df, SL_library)
             }
         } else {
             cat(paste("Error:", cohort, "should be cancer_vs_nocancer or cancer_type or both of them"), "\n")
