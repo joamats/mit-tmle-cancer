@@ -16,7 +16,7 @@ import shap
 # Number of folds used in cross-validation (also used as parallel processes)
 N_FOLDS = 5
 # Tests per cohort
-NREP = 10
+NREP = 50
 
 ### Get the data ###
 # now read treatment from txt
