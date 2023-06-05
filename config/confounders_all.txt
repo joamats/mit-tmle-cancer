@@ -18,7 +18,7 @@ renal
 charlson_cont
 hospitalid
 numbedscategory
-teachingstatus
+teaching_hospital
 region
 resp_rate_mean
 mbp_mean

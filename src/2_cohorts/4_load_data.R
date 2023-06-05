@@ -160,6 +160,9 @@ load_data <- function(cohort){
   # combine complications
   data <- data %>% mutate(comb_noso = ifelse(clabsi == 1 | cauti == 1 | ssi == 1 | vap == 1, 1, 0))
 
+  # Encode teachingstatus as binary
+  data <- data %>% mutate(teaching_hospital = ifelse(teachingstatus == "False", 0, 1))
+  
   # Encode CKD stages as binary
   data <- within(data, ckd_stages <- factor(ckd_stages, levels = c(0, 1, 2, 3, 4, 5)))
   data <- within(data, ckd_stages <- fct_collapse(ckd_stages,"0" = c("0", "1", "2"), "1" = c("3", "4", "5")))
@@ -209,9 +212,10 @@ load_data <- function(cohort){
   data <- data[, c("sex_female", "race_group", "ethnicity_white", "anchor_age",
                   "mech_vent", "rrt", "vasopressor",  
                   "charlson_cont", "CCI_ranges", "anchor_year_group", "adm_elective", "major_surgery",
-                  "SOFA", "prob_mort", 
+                  "SOFA", "respiration", "coagulation", "liver", "cardiovascular", "cns", "renal",
+                  "prob_mort", 
                   "mortality_in", "los_icu", "free_days_hosp_28", "odd_hour", "comb_noso",
-                  "hospitalid", "numbedscategory", "teachingstatus", "region",
+                  "hospitalid", "numbedscategory", "teaching_hospital", "region",
                   "resp_rate_mean", "mbp_mean", "heart_rate_mean", "temperature_mean", "spo2_mean",
                   "po2_min", "pco2_max", "ph_min", "lactate_max", "glucose_max", "sodium_min",
                   "potassium_max", "cortisol_min", "hemoglobin_min", "fibrinogen_min", "inr_max",
