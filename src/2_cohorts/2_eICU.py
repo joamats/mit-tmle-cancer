@@ -32,7 +32,7 @@ print(f"{len(df3)} stays with sepsis, LoS > 24h, adult patient \n({demo3})\n")
 
 # Remove stay where apache_prob is NA or -1
 df4 = df3[df3.apache_prob != -1]
-df4 = df4[df4.apache_prob != np.nan]
+df4 = df4[df4['apache_prob'].notna()]
 print(f"Removed {len(df3) - len(df4)} stays with missing APACHE predictions")
 demo4 = print_demo(get_demography(df4))
 print(f"{len(df4)} stays with sepsis, LoS > 24h, adult patient, APACHE present \n({demo4})\n")

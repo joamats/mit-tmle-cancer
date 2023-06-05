@@ -18,9 +18,9 @@ load_data <- function(cohort){
       data['mortality_90'] <- NA
 
       # add date before dischtime to have same structure as in MIMIC
-      data$dummy_date <- "10-05-2022"           
-      data$dischtime <- as.POSIXct(
-        paste(data$dummy_date, data$dischtime), format = "%Y-%m-%d %H:%M:%S")
+      data$dummy_date <- "2022-05-10"     
+      data$dischtime <- paste(data$dummy_date, data$dischtime)
+      data$dischtime <- as.POSIXct(data$dischtime, format = "%Y-%m-%d %H:%M:%S")
 
     } 
   
@@ -150,9 +150,10 @@ load_data <- function(cohort){
                     "loc_melanoma", "loc_breast", "loc_endometrial", "loc_prostate",
                     "loc_kidney", "loc_bladder", "loc_thyroid", "loc_nhl", "loc_leukemia",
                     "copd_present", "asthma_present", "heart_failure_present", "connective_disease",
-                    "hypertension_present", "cad_present", "ckd_stages", "diabetes_types", "major_surgery",
+                    "hypertension_present", "cad_present", "ckd_stages", "diabetes_types", 
+                    "adm_elective", "major_surgery",
                     "clabsi", "cauti", "ssi", "vap", "pneumonia", "uti", "biliary", "skin",
-                    "SOFA", 
+                    "SOFA", "respiration", "coagulation", "liver", "cardiovascular", "cns", "renal", 
                     'mv_elig', 'rrt_elig', 'vp_elig')
 
   data <- data %>% mutate_at(cancer_list, ~ replace_na(., 0))
