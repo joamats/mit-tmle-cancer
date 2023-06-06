@@ -1,6 +1,5 @@
 library(magrittr) 
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(gdata)
 library(forcats)
 
@@ -20,7 +19,9 @@ load_data <- function(cohort){
       # add date before dischtime to have same structure as in MIMIC
       data$dummy_date <- "2022-05-10"     
       data$dischtime <- paste(data$dummy_date, data$dischtime)
-      data$dischtime <- as.POSIXct(data$dischtime, format = "%Y-%m-%d %H:%M:%S")
+      print(head(data$dischtime))
+      data$dischtime <- as.POSIXct(data$dischtime, format = "%Y-%m-%d %H")
+      print(head(data$dischtime))
 
     } 
   
@@ -197,17 +198,24 @@ load_data <- function(cohort){
   data <- data %>% mutate(rrt_elig = ifelse(rrt == 1 & (RRT_init_offset_d_abs <= 3), 1, 0))
 
   # odd hours for negative control outcome
-  data$dischtime <- as.POSIXct(data$dischtime)
+  print(paste0(cohort, head(data$dischtime)))
+  data$dischtime <- as.character(data$dischtime)
+  print(paste0(cohort, head(data$dischtime)))
+
+  data$hour <- format(as.POSIXct(data$dischtime), format="%H")
+
+  print(paste0(cohort, head(data$hour)))
 
   # Extract hour from 'dischtime'
-  data$hour <- format(data$dischtime, "%H")
+  #data$hour <- format(strptime(data$dischtime, "%H:%M:%S"), "%H")
 
   # Convert hour to numeric
   data$hour <- as.numeric(data$hour)
-
+  print(paste0(cohort, head(data$hour)))
   # Create new column 'odd_hour' based on 'hour'
-  data$odd_hour <- ifelse(data$hour %% 2 == 1, 1, 0)
-
+  data$odd_hour <- ifelse(data$hour %% 2 == 1, 0, 1)
+  print(paste0(cohort, " ", head(data$odd_hour)))
+  print(typeof(data$odd_hour))
   # Return just keeping columns of interest
 
   data <- data[, c("sex_female", "race_group", "ethnicity_white", "anchor_age",
@@ -215,7 +223,7 @@ load_data <- function(cohort){
                   "charlson_cont", "CCI_ranges", "anchor_year_group", "adm_elective", "major_surgery",
                   "SOFA", "respiration", "coagulation", "liver", "cardiovascular", "cns", "renal",
                   "prob_mort", 
-                  "mortality_in", "los_icu", "free_days_hosp_28", "odd_hour", "comb_noso",
+                  "mortality_in", "los_icu", "free_days_hosp_28", "hour", "odd_hour", "comb_noso",
                   "hospitalid", "numbedscategory", "teaching_hospital", "region",
                   "resp_rate_mean", "mbp_mean", "heart_rate_mean", "temperature_mean", "spo2_mean",
                   "po2_min", "pco2_max", "ph_min", "lactate_max", "glucose_max", "sodium_min",
@@ -244,8 +252,8 @@ get_merged_datasets <- function() {
   eicu_cancer <- load_data("eICU_cancer")
 
   # merge 2 cohorts
-  data_all <- combine(mimic_all, eicu_all, names=c("mimc", "eicu"))
-  data_cancer <- combine(mimic_cancer, eicu_cancer, names=c("mimc", "eicu"))
+  data_all <- combine(mimic_all, eicu_all, names=c("mimic", "eicu"))
+  data_cancer <- combine(mimic_cancer, eicu_cancer, names=c("mimic", "eicu"))
 
   # save ignoring index column
   write.csv(data_all, "data/cohorts/merged_all.csv", row.names = FALSE)

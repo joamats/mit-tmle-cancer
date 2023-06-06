@@ -1,9 +1,7 @@
 # Code for creating Table 1 in MIMIC data
 library(tidyverse)
 library(table1)
-library(dplyr)
 library(flextable)
-library(magrittr)
 
 df <- read_csv('data/cohorts/merged_all.csv', show_col_types = FALSE)
 
@@ -17,9 +15,9 @@ df$sex_female <- factor(df$sex_female, levels=c(1,0), labels=c("Female", "Male")
 df$mortality_in <- factor(df$mortality_in, levels=c(1,0), labels=c("Died", "Survived"))
 df$has_cancer <- factor(df$has_cancer, levels=c(1,0), labels=c("Cancer", "Non-Cancer"))
 
-df$mech_vent <- factor(df$mech_vent, levels=c(1,0), labels=c("Received", "Not received"))
-df$rrt <- factor(df$rrt, levels=c(1,0), labels=c("Received", "Did not receive"))
-df$vasopressor <- factor(df$vasopressor, levels=c(1,0), labels=c("Received", "Not received"))
+df$mv_elig <- factor(df$mv_elig, levels=c(1,0), labels=c("Received", "Not received"))
+df$rrt_elig <- factor(df$rrt_elig, levels=c(1,0), labels=c("Received", "Did not receive"))
+df$vp_elig <- factor(df$vp_elig, levels=c(1,0), labels=c("Received", "Not received"))
 
 df$is_full_code_admission <- factor(df$is_full_code_admission, levels=c(0,1), labels=c("Not Full Code", "Full Code"))
 df$is_full_code_discharge <- factor(df$is_full_code_discharge, levels=c(0,1), labels=c("Not Full Code", "Full Code"))
@@ -32,7 +30,7 @@ df$age_ranges[df$anchor_age >= 75 & df$anchor_age <= 84] <- "75 - 84"
 df$age_ranges[df$anchor_age >= 85] <- "85 and higher"
 
 # Cohort of Source
-df <- df %>% mutate(source = ifelse(source == "mimic_all", "MIMIC", "eICU"))
+df <- df %>% mutate(source = ifelse(source == "mimic", 1, 0))
 
 # Cancer Categories
 df <- df %>% mutate(group_solid = ifelse(group_solid == 1, "Present", "Not Present"))
@@ -55,26 +53,22 @@ df <- df %>% mutate(loc_nhl = ifelse(loc_nhl == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_leukemia = ifelse(loc_leukemia == 1, "Present", "Not Present"))
 
 # Get data into factor format
-df$SOFA_ranges <- factor(df$SOFA_ranges, levels = c('0-3', '4-6', '7-10', '>10'),
-                                         labels = c('0 - 3', '4 - 6','7 - 10', '11 and above'))
+df$source <- factor(df$source, levels = c(1, 0), 
+                        labels = c('MIMIC', 'eICU'))
 
-df$CCI_ranges <- factor(df$CCI_ranges, levels = c('0-3', '4-6', '7-10', '>10'),
-                                       labels = c('0 - 3', '4 - 6', '7 - 10', '11 and above'))
-df$source <- factor(df$source)
-
-df$com_hypertension_present <- factor(df$com_hypertension_present, levels = c(0, 1), 
+df$hypertension_present <- factor(df$hypertension_present, levels = c(0, 1), 
                         labels = c('Hypertension absent', 'Hypertension present'))
 
-df$com_heart_failure_present <- factor(df$com_heart_failure_present, levels = c(0, 1), 
+df$heart_failure_present <- factor(df$heart_failure_present, levels = c(0, 1), 
                         labels = c('CHF absent', 'CHF present'))
 
-df$com_copd_present <- factor(df$com_copd_present, levels = c(0, 1), 
+df$copd_present <- factor(df$copd_present, levels = c(0, 1), 
                         labels = c('COPD absent', 'COPD present'))
 
-df$com_asthma_present <- factor(df$com_asthma_present, levels = c(0, 1), 
+df$asthma_present <- factor(df$asthma_present, levels = c(0, 1), 
                         labels = c('Asthma absent', 'Asthma present'))
 
-df$com_ckd_stages <- factor(df$com_ckd_stages, levels = c(0, 1),
+df$ckd_stages <- factor(df$ckd_stages, levels = c(0, 1),
                         labels = c("CKD Absent", "CKD Present"))
 
 df$cancer_type <- 0
@@ -94,25 +88,22 @@ units(df$anchor_age) <- "years"
 
 label(df$sex_female) <- "Sex"
 label(df$SOFA) <- "SOFA continuous"
-label(df$SOFA_ranges) <- "SOFA Ranges"
 
 label(df$los_icu_dead) <- "Length of stay if died"
 units(df$los_icu_dead) <- "days"
 label(df$los_icu_survived) <- "Length of stay if survived"
 units(df$los_icu_survived) <- "days"
 
-label(df$has_cancer) <- "Cancer Presence"
+label(df$has_cancer) <- "Cancer Present"
 
-label(df$CCI) <- "Charlson Comorbidity Index continuous (CCI)"
-label(df$CCI_ranges) <- "CCI Ranges"
+label(df$charlson_cont) <- "Charlson Comorbidity Index"
 
-label(df$mech_vent) <- "Mechanic Ventilation"
-label(df$rrt) <- "Renal Replacement Therapy"
-label(df$vasopressor) <- "Vasopressor(s)"
+label(df$mv_elig) <- "Mechanic Ventilation"
+label(df$rrt_elig) <- "Renal Replacement Therapy"
+label(df$vp_elig) <- "Vasopressor(s)"
 
 label(df$mortality_in) <- "In-hospital Mortality"
-
-label(df$has_cancer) <- "Active Cancer"
+label(df$source) <- "Database"
 
 label(df$group_solid) <- "Solid Cancer"
 label(df$group_hematological) <- "Hematological Cancer"
@@ -132,11 +123,11 @@ label(df$loc_pancreatic) <- "Pancreatic"
 label(df$loc_thyroid) <- "Thyroid"
 label(df$loc_liver_bd) <- "Liver and intrahepatic BD"
 
-label(df$com_hypertension_present) <- "Hypertension"
-label(df$com_heart_failure_present) <- "Heart Failure"
-label(df$com_copd_present) <- "COPD"
-label(df$com_asthma_present) <- "Asthma"
-label(df$com_ckd_stages) <- "CKD"
+label(df$hypertension_present) <- "Hypertension"
+label(df$heart_failure_present) <- "Heart Failure"
+label(df$copd_present) <- "COPD"
+label(df$asthma_present) <- "Asthma"
+label(df$ckd_stages) <- "CKD"
 
 label(df$is_full_code_admission) <- "Full Code upon Admission"
 label(df$is_full_code_discharge) <- "Full Code upon Discharge"
@@ -155,12 +146,12 @@ render.strat <- function (label, n, ...) {
 
 # Create Table1 Object
 tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
-               mech_vent + rrt + vasopressor +
+               mv_elig + rrt_elig + vp_elig + source +
                age_ranges + anchor_age + sex_female + race_group + 
-               SOFA_ranges + SOFA + CCI_ranges + CCI +
+               SOFA + charlson_cont +
                is_full_code_admission + is_full_code_discharge +
-               com_hypertension_present + com_heart_failure_present +
-               com_asthma_present + com_copd_present + com_ckd_stages + 
+               hypertension_present + heart_failure_present +
+               asthma_present + copd_present + ckd_stages + 
                group_solid + group_hematological + group_metastasized +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic +
                loc_lung_bronchus + loc_melanoma + loc_breast +
@@ -171,7 +162,8 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                render.missing=NULL,
                topclass="Rtable1-grid Rtable1-shade Rtable1-times",
                render.categorical=render.categorical,
-               render.strat=render.strat
+               render.strat=render.strat,
+               render.continuous=c(.="Mean (SD)", .="Median (Q2, Q3)")
               )
 
 
@@ -180,13 +172,12 @@ t1flex(tbl1) %>% save_as_docx(path="results/table1/1A_by_cancer.docx")
 
 # Create Table1 Object
 tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
-               mech_vent + rrt + vasopressor +
+               mv_elig + rrt_elig + vp_elig + has_cancer +
                age_ranges + anchor_age + sex_female + race_group + 
-               SOFA_ranges + SOFA + CCI_ranges + CCI +
+               SOFA + charlson_cont +
                is_full_code_admission + is_full_code_discharge +
-               com_hypertension_present + com_heart_failure_present +
-               com_asthma_present + com_copd_present + com_ckd_stages + 
-               has_cancer +
+               hypertension_present + heart_failure_present +
+               asthma_present + copd_present + ckd_stages + 
                group_solid + group_hematological + group_metastasized +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic +
                loc_lung_bronchus + loc_melanoma + loc_breast +
@@ -197,11 +188,12 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                render.missing=NULL,
                topclass="Rtable1-grid Rtable1-shade Rtable1-times",
                render.categorical=render.categorical,
-               render.strat=render.strat
+               render.strat=render.strat,
+               render.continuous=c(.="Mean (SD)", .="Median (Q2, Q3)")
               )
 
 # Convert to flextable
-t1flex(tbl1) %>% save_as_docx(path="results/table1/1A_by_database.docx")
+t1flex(tbl1) %>% save_as_docx(path="results/table1/1B_by_database.docx")
 
 
 
