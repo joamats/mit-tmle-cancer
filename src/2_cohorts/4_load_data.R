@@ -3,9 +3,15 @@ library(tidyverse)
 library(gdata)
 library(forcats)
 
+# Install and load the lubridate package
+library(lubridate)
+
 load_data <- function(cohort){
 
   file_path <- paste0("data/cohorts/", cohort, ".csv")
+
+  print('**************')
+  print(cohort)
 
   # Load Data  
   data <- read.csv(file_path, header = TRUE, stringsAsFactors = TRUE)
@@ -19,19 +25,22 @@ load_data <- function(cohort){
       # add date before dischtime to have same structure as in MIMIC
       data$dummy_date <- "2022-05-10"     
       data$dischtime <- paste(data$dummy_date, data$dischtime)
-      print(head(data$dischtime))
-      data$dischtime <- as.POSIXct(data$dischtime, format = "%Y-%m-%d %H")
-      print(head(data$dischtime))
+            
+      #data$dischtime <- as.POSIXct(data$dischtime, format = "%Y-%m-%d %H")
 
-    } 
+  } else {
+      # convert dischtime to POSIXct
+      data$dischtime <- as.character(data$dischtime)
+  }
   
   # Show the data frame
   # check if eICU or MIMIC in cohort name
   if (grepl("eICU", cohort)) {
-    print(paste0("eICU cohort: ", cohort))
+    print(paste("eICU cohort: ", cohort))
   } else {
-    print(paste0("MIMIC cohort: ", cohort))
+    print(paste("MIMIC cohort: ", cohort))
   }
+  print(class(data$dischtime))
 
   # Common data cleaning steps
 
@@ -197,25 +206,32 @@ load_data <- function(cohort){
   data <- data %>% mutate(vp_elig = ifelse(vasopressor == 1 & (VP_init_offset_d_abs <= 1), 1, 0))
   data <- data %>% mutate(rrt_elig = ifelse(rrt == 1 & (RRT_init_offset_d_abs <= 3), 1, 0))
 
+
   # odd hours for negative control outcome
-  print(paste0(cohort, head(data$dischtime)))
-  data$dischtime <- as.character(data$dischtime)
-  print(paste0(cohort, head(data$dischtime)))
+  print(paste(cohort, head(data$dischtime)))
 
-  data$hour <- format(as.POSIXct(data$dischtime), format="%H")
+  # Applying the operation to each row in data$dischtime
+  result <- lapply(data$dischtime, function(dischtime) {
+    substring <- strsplit(dischtime, " ")[[1]][[2]] %>% substr(1, 2) %>% as.numeric()
+    return(substring)
+  })
 
-  print(paste0(cohort, head(data$hour)))
+  # Converting the result to a numeric vector
+  result <- unlist(result)
+  # Adding the result as a new column to the data frame
+  data$hour <- result
 
-  # Extract hour from 'dischtime'
-  #data$hour <- format(strptime(data$dischtime, "%H:%M:%S"), "%H")
+  print(paste(cohort, head(data$hour)))
 
   # Convert hour to numeric
-  data$hour <- as.numeric(data$hour)
-  print(paste0(cohort, head(data$hour)))
+  #data$hour <- as.numeric(data$hour)
+  print(paste(cohort, head(data$hour)))
   # Create new column 'odd_hour' based on 'hour'
   data$odd_hour <- ifelse(data$hour %% 2 == 1, 0, 1)
-  print(paste0(cohort, " ", head(data$odd_hour)))
-  print(typeof(data$odd_hour))
+  print(paste(cohort, " ", head(data$odd_hour)))
+
+
+
   # Return just keeping columns of interest
 
   data <- data[, c("sex_female", "race_group", "ethnicity_white", "anchor_age",
