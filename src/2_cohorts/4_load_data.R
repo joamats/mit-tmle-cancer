@@ -25,8 +25,6 @@ load_data <- function(cohort){
       # add date before dischtime to have same structure as in MIMIC
       data$dummy_date <- "2022-05-10"     
       data$dischtime <- paste(data$dummy_date, data$dischtime)
-            
-      #data$dischtime <- as.POSIXct(data$dischtime, format = "%Y-%m-%d %H")
 
   } else {
       # convert dischtime to POSIXct
@@ -40,7 +38,6 @@ load_data <- function(cohort){
   } else {
     print(paste("MIMIC cohort: ", cohort))
   }
-  print(class(data$dischtime))
 
   # Common data cleaning steps
 
@@ -208,7 +205,7 @@ load_data <- function(cohort){
 
 
   # odd hours for negative control outcome
-  print(paste(cohort, head(data$dischtime)))
+  # Complicated code due to problems with datetime conversions
 
   # Applying the operation to each row in data$dischtime
   result <- lapply(data$dischtime, function(dischtime) {
@@ -218,18 +215,12 @@ load_data <- function(cohort){
 
   # Converting the result to a numeric vector
   result <- unlist(result)
+
   # Adding the result as a new column to the data frame
   data$hour <- result
 
-  print(paste(cohort, head(data$hour)))
-
-  # Convert hour to numeric
-  #data$hour <- as.numeric(data$hour)
-  print(paste(cohort, head(data$hour)))
   # Create new column 'odd_hour' based on 'hour'
-  data$odd_hour <- ifelse(data$hour %% 2 == 1, 0, 1)
-  print(paste(cohort, " ", head(data$odd_hour)))
-
+  data$odd_hour <- ifelse(data$hour %% 2 == 1, 1, 0)
 
 
   # Return just keeping columns of interest

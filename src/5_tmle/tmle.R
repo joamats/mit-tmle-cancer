@@ -30,10 +30,13 @@ FIRST <- TRUE
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min, sev_max, results_df, group_true) {
-
+               
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
+
+
+print(sapply(lapply(W, unique), length))
 
     if (length(unique(Y)) > 2) {
         
@@ -42,7 +45,6 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
         max.Y <- max(Y)
         Y <- (Y-min.Y)/(max.Y-min.Y)
         # Transform continuous outcomes to be between 0 and 1
-        #Y <- normalize(data[, outcome], include_bounds = TRUE, verbose = TRUE)
         Y <- (data[, outcome]-min.Y)/(max.Y-min.Y)
 
         result <- tmle(
@@ -136,14 +138,19 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
 
                 for (i in 1:nrow(prob_mort_ranges)) {
                     
-                    sev_min <- prob_mort_ranges$min[i]
-                    sev_max <- prob_mort_ranges$max[i]
+                    if (group == "group_solid" | group == "group_hematologic" | group == "group_metastasized") {
+                        sev_min <- 0
+                        sev_max <- 1
+                    } else {
+                        sev_min <- prob_mort_ranges$min[i]
+                        sev_max <- prob_mort_ranges$max[i]
+                    }
 
                     print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
 
                     # Stratify by prob_mort
                     data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
-                    
+
                     # Run TMLE
                     results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min, sev_max, results_df, group_true)
@@ -160,8 +167,13 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                     
                     for (i in 1:nrow(prob_mort_ranges)) {
                         
-                        sev_min <- prob_mort_ranges$min[i]
-                        sev_max <- prob_mort_ranges$max[i]
+                        if (group == "group_solid" | group == "group_hematologic" | group == "group_metastasized") {
+                            sev_min <- 0
+                            sev_max <- 1
+                        } else {
+                            sev_min <- prob_mort_ranges$min[i]
+                            sev_max <- prob_mort_ranges$max[i]
+                        }
 
                         print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
 
@@ -190,7 +202,7 @@ check_columns_in_df <- function(df, columns) {
   }
 }
 
-databases = c("all", "eicu", "mimic")
+databases = c("all", "eicu", "mimic") 
 
 for (db in databases){
   print('***************')
@@ -219,14 +231,21 @@ for (db in databases){
                         
     group <- ""
     for (cohort in cohorts) {
+        
+        # Remove hospital confounders for analysis with MIMIC only, as they do not vary
+        confounders_aux <- confounders[!confounders %in% c("hospitalid", "numbedscategory", "teaching_hospital", "region")]
+
         if (cohort == "cancer_vs_nocancer") {
+
+            df <- read.csv("data/cohorts/merged_all.csv")
+
             # Get all data
-            if (db == "all"){
-                df <- read.csv("data/cohorts/merged_all.csv")
-            } else if (db == "eicu") {
-               df <- read.csv("data/cohorts/merged_eicu_all.csv")
+            if (db == "eicu") {
+               df <- subset(df, source == db)
+
             } else if (db == "mimic") {
-               df <- read.csv("data/cohorts/merged_mimic_all.csv")
+               df <- subset(df, source == db)
+
             } else {
                 cat(paste("Error:", db, "should be all, eicu or mimic"), "\n")
                 break
@@ -234,9 +253,21 @@ for (db in databases){
 
             group <- "has_cancer"
             cohort <- "cancer"
+            
+            if (db == "mimic") {
+            # pass updated confounders without hospital confounders to tmle function
+            results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders_aux, paste0(cohort, "_vs_others"), results_df, SL_library)
+            
+            } else {
+            # if database is all or eicu -> keep hospital confounders
             results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
-        } 
+            } 
+        }
         else if (cohort == "cancer_type") {
+            
+            # Remove hospital confounders for analysis with MIMIC only, as they do not vary
+            confounders_aux <- confounders[!confounders %in% c("hospitalid", "numbedscategory", "teaching_hospital", "region")]
+
             for (cancer_type in cancer_types) {
                 cat(paste("Getting data for cancer type:", cancer_type), "\n")
     
@@ -254,8 +285,16 @@ for (db in databases){
 
                 group <- cancer_type
                 cohort <- cancer_type
-                results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_nocancer"), results_df, SL_library)
-            }
+                
+                if (db == "mimic") {
+                # pass updated confounders without hospital confounders to tmle function
+                results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders_aux, paste0(cohort, "_vs_nocancer"), results_df, SL_library)
+            
+                } else {
+                # if database is all or eicu -> keep hospital confounders
+                results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_others"), results_df, SL_library)
+                }
+            }     
         } else {
             cat(paste("Error:", cohort, "should be cancer_vs_nocancer or cancer_type or both of them"), "\n")
             next
