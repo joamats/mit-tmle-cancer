@@ -1,3 +1,2 @@
 outcome
 mortality_in
-odd_hour

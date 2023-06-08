@@ -35,9 +35,6 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
     A <- data[, treatment]
     Y <- data[, outcome]
 
-
-print(sapply(lapply(W, unique), length))
-
     if (length(unique(Y)) > 2) {
         
         # Normalize continuous outcomes to be between 0 and 1
@@ -136,25 +133,37 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                 group_true = 1
                 data_subset <- subset(data, data[[group]] == 1)
 
-                for (i in 1:nrow(prob_mort_ranges)) {
-                    
-                    if (group == "group_solid" | group == "group_hematologic" | group == "group_metastasized") {
+                if (group %in% c("group_solid", "group_hematologic", "group_metastasized")) {
+                        
                         sev_min <- 0
                         sev_max <- 1
+
+                        print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                        # Stratify by prob_mort
+                        data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+
+                        # Run TMLE
+                        results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                                                cohort, sev_min, sev_max, results_df, group_true)
+
                     } else {
+
+                        for (i in 1:nrow(prob_mort_ranges)) {
+
                         sev_min <- prob_mort_ranges$min[i]
                         sev_max <- prob_mort_ranges$max[i]
+                    
+                        print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                        # Stratify by prob_mort
+                        data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+                        
+                        # Run TMLE                        
+                        results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                                            cohort, sev_min, sev_max, results_df, group_true)
+
                     }
-
-                    print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
-
-                    # Stratify by prob_mort
-                    data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
-
-                    # Run TMLE
-                    results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
-                     cohort, sev_min, sev_max, results_df, group_true)
-
                 }
 
                 # When group is false: group = 0
@@ -165,26 +174,47 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                     group_true = 0
                     data_subset <- subset(data, data[["has_cancer"]] == 0)
                     
-                    for (i in 1:nrow(prob_mort_ranges)) {
-                        
-                        if (group == "group_solid" | group == "group_hematologic" | group == "group_metastasized") {
+                    if (group %in% c("group_solid", "group_hematologic", "group_metastasized")) {
+                            
                             sev_min <- 0
                             sev_max <- 1
-                        } else {
+
+                            print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                            # Stratify by prob_mort
+                            data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+
+                            # Run TMLE
+                            results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                                                    cohort, sev_min, sev_max, results_df, group_true)
+                    
+                    } else {
+
+                        for (i in 1:nrow(prob_mort_ranges)) {
+
                             sev_min <- prob_mort_ranges$min[i]
                             sev_max <- prob_mort_ranges$max[i]
-                        }
-
-                        print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
-
-                        # Stratify by prob_mort
-                        data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
                         
-                        # Run TMLE
-                        results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
-                        cohort, sev_min, sev_max, results_df, group_true)
+                            print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                            # Stratify by prob_mort
+                            data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+                            
+                            # Run TMLE                        
+                            results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                                                cohort, sev_min, sev_max, results_df, group_true)
+
+                            print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                            # Stratify by prob_mort
+                            data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+                        
+                            # Run TMLE
+                            results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
+                                                    cohort, sev_min, sev_max, results_df, group_true)
+                        }
                     }
-                }
+                }   
             }
         }
     }
