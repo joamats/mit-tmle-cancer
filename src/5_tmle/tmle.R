@@ -7,7 +7,7 @@ library(data.table)
 treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
-confounders <- read.delim("config/confounders.txt")$confounder
+confounders <- read.delim("config/confounders copy.txt")$confounder
 
 # read the cofounders from list in txt
 outcomes <- read.delim("config/outcomes.txt")$outcome
@@ -22,7 +22,10 @@ cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 SL_library <- read.delim("config/SL_libraries_base.txt")
 
 # Define predicted mortality ranges
-prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
+prob_mort_ranges <- read.csv("config/prob_mort_ranges copy.csv")
+
+# First iteration
+FIRST <- TRUE
 
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
@@ -78,7 +81,7 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
     }
 
     print("***************")
-   #print(log)
+    #print(log)
 
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
@@ -108,41 +111,26 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
         # Get the treatments:
         for (treatment in treatments) {
             cat(paste("Doing the prediction for treatment:", treatment), "\n")
-        
-            for (group in groups) {
-                # First iteration
-                FIRST <- TRUE
-
-                cat(paste("Group:", group), "\n")
-                # append treatments that are not the current one to confounders
-                conf <- c()
-                for (confounder in confounders) {
-                    if (confounder != treatment) {
-                        # Append treatment to confounders
-                        conf <- c(conf, confounder)
-                    }
+            # append treatments that are not the current one to confounders
+            conf <- c()
+            for (confounder in confounders) {
+                if (confounder != treatment) {
+                    # Append treatment to confounders
+                    conf <- c(conf, confounder)
                 }
+            }
+            
+            for (group in groups) {
+                cat(paste("Group:", group), "\n")
 
                 # Get the data for the current group
                 # When group is true: group = 1
                 group_true = 1
                 data_subset <- subset(data, data[[group]] == group_true)
 
-                if (group %in% c("group_solid", "group_hematologic", "group_metastasized")) {
+                if (group == "has_cancer") {
+                    print(paste('calculating for group:', group,  '= 1'))
 
-                    sev_min <- 0
-                    sev_max <- 1
-
-                    print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
-
-                    # Stratify by prob_mort
-                    data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
-
-                    # Run TMLE
-                    results_df = run_tmle(data_subsub, treatment, conf, outcome, SL_libraries,
-                                            cohort, sev_min, sev_max, results_df, group_true)
-
-                } else {
                     for (i in 1:nrow(prob_mort_ranges)) {
 
                         sev_min <- prob_mort_ranges$min[i]
@@ -157,12 +145,30 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                         results_df = run_tmle(data_subsub, treatment, conf, outcome, SL_libraries,
                                             cohort, sev_min, sev_max, results_df, group_true)
                     }
+
+                } else {
+                    print(paste('calculating for group:', group,  '= 1'))
+
+                    sev_min <- 0
+                    sev_max <- 1
+
+                    print(paste0("Stratification by prob_mort: ", sev_min, " - ", sev_max))
+
+                    # Stratify by prob_mort
+                    data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
+
+                    # Run TMLE
+                    results_df = run_tmle(data_subsub, treatment, conf, outcome, SL_libraries,
+                                            cohort, sev_min, sev_max, results_df, group_true)
                 }
 
                 # When group is false: group = 0
+
+                print(paste('The value of first is:', FIRST))
+                
                 if (FIRST == TRUE) {
-                    
-                    FIRST <- FALSE
+                    print('calculating for group 0')
+                    print("Group has cancer: 0")
                     
                     group_true = 0
                     data_subset <- subset(data, data[["has_cancer"]] == 0)
@@ -258,6 +264,9 @@ for (db in databases){
             # if database is all or eicu -> keep hospital confounders
             results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders, paste0(cohort, "_vs_nocancer"), results_df, SL_library)
             } 
+            
+            FIRST <- FALSE
+
         }
         else if (cohort == "cancer_type") {
             
@@ -281,7 +290,7 @@ for (db in databases){
 
                 group <- cancer_type
                 cohort <- cancer_type
-                                
+                               
                 if (db == "mimic") {
                     # pass updated confounders without hospital confounders to tmle function
                     results_df <- calculate_tmle_per_cohort(df, group, treatments, outcomes, confounders_aux, paste0(cohort, "_vs_nocancer"), results_df, SL_library)
