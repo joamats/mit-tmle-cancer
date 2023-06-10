@@ -1,5 +1,4 @@
 library(tmle)
-library(pROC)
 library(data.table)
 
 ### Get the data ###
@@ -7,7 +6,7 @@ library(data.table)
 treatments <- read.delim("config/treatments.txt")$treatment
 
 # read features from list in txt
-confounders <- read.delim("config/confounders copy.txt")$confounder
+confounders <- read.delim("config/confounders.txt")$confounder
 
 # read the cofounders from list in txt
 outcomes <- read.delim("config/outcomes.txt")$outcome
@@ -22,7 +21,7 @@ cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 SL_library <- read.delim("config/SL_libraries_base.txt")
 
 # Define predicted mortality ranges
-prob_mort_ranges <- read.csv("config/prob_mort_ranges copy.csv")
+prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
 
 # First iteration
 FIRST <- TRUE
@@ -30,6 +29,7 @@ FIRST <- TRUE
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                      cohort, sev_min, sev_max, results_df, group_true) {
+    
     W <- data[, confounders]
     A <- data[, treatment]
     Y <- data[, outcome]
@@ -204,7 +204,7 @@ check_columns_in_df <- function(df, columns) {
   }
 }
 
-databases = c("all", "eicu", "mimic") 
+databases = c("mimic") #"all","eicu",
 
 for (db in databases){
   print('***************')
