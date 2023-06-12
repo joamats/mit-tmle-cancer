@@ -140,13 +140,32 @@ def check_columns_in_df(df, columns):
         return False
     else:
         return True
+    
+
+def get_onject_columns(df):
+    return list(df.select_dtypes(include=['object']).columns)
+
+def rename_columns(df, cofounders):
+    # rename columns with ">" to "_gt_", "<" to "_lt_", "=" to "_eq_", ">=" to "_gte_", "<=" to "_lte_"
+    df.columns = df.columns.str.replace('>', '_gt_')
+    df.columns = df.columns.str.replace('<', '_lt_')
+    df.columns = df.columns.str.replace('=', '_eq_')
+    df.columns = df.columns.str.replace(' ', '')
+    df.columns = df.columns.str.replace('__', '_')
+
+    # do the changes for the confounders
+    cofounders = [c.replace('>', '_gt_') for c in cofounders]
+    cofounders = [c.replace('<', '_lt_') for c in cofounders]
+    cofounders = [c.replace('=', '_eq_') for c in cofounders]
+    cofounders = [c.replace(' ', '') for c in cofounders]
+    cofounders = [c.replace('__', '_') for c in cofounders]
+    return df, cofounders
 
 databases = ["all", "eicu", "mimic"]
 
 for db in databases:
 
     print('#'*30, f' {db} ' ,'#'*30)
-
 
     # create dataframes to store results
     results_template = pd.DataFrame(columns=["cohort", "group", "treatment", "OR", "2.5%", "97.5%"])
@@ -174,7 +193,22 @@ for db in databases:
             if check == False:
                 continue
 
-            results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
+            initial_columns = confounders + treatments + [group]
+            df = df[initial_columns]
+
+            # Get categorical columns
+            categorical_columns = get_onject_columns(df)
+            print(f"Converting ctegorical columns: {categorical_columns}")
+            # convert categorical columns to dummies and get the new column names
+            df = pd.get_dummies(df, columns=categorical_columns, drop_first=False)
+            # remove categorical columns from confounders list and add the new columns in the dataset
+            one_hot_columns = [c for c in df.columns if c not in initial_columns]
+            # update confounders list:
+            confounders_aux = [c for c in confounders if c not in categorical_columns] + one_hot_columns
+            
+            df, confounders_aux = rename_columns(df, confounders_aux)
+            
+            results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders_aux, cohort+'_vs_others', results_template)
             results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
 
         elif cohort == 'cancer_type':
@@ -198,8 +232,23 @@ for db in databases:
                 check = check_columns_in_df(df, confounders)
                 if check == False:
                     continue
-                    
-                results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders, cohort+'_vs_others', results_template)
+                
+                initial_columns = confounders + treatments + [group]
+                df = df[initial_columns]
+
+                # Get categorical columns
+                categorical_columns = get_onject_columns(df)
+                print(f"Converting ctegorical columns: {categorical_columns}")
+                # convert categorical columns to dummies and get the new column names
+                df = pd.get_dummies(df, columns=categorical_columns, drop_first=False)
+                # remove categorical columns from confounders list and add the new columns in the dataset
+                one_hot_columns = [c for c in df.columns if c not in initial_columns]
+                # update confounders list:
+                confounders_aux = [c for c in confounders if c not in categorical_columns] + one_hot_columns
+
+                df, confounders_aux = rename_columns(df, confounders_aux)
+
+                results_df_aux = odds_ratio_per_cohort(df, [group], treatments, confounders_aux, cohort+'_vs_others', results_template)
                 results_df = pd.concat([results_df, results_df_aux], ignore_index=True)
 
         else:
