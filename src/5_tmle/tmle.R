@@ -204,7 +204,7 @@ check_columns_in_df <- function(df, columns) {
   }
 }
 
-databases = c("mimic") #"all","eicu",
+databases = c("mimic") # "all","eicu",
 
 for (db in databases){
   print('***************')

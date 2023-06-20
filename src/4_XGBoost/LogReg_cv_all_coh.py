@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from xgboost import XGBClassifier
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, LogisticRegressionCV as LogisticRegression
 from joblib import Parallel, delayed
 import os
 
@@ -40,21 +40,18 @@ with open("config/cancer_types.txt", "r") as f:
 cancer_types.remove("cancer_type")
 
 
-# Function to train the XGBoost model, calculate SHAP values, and calculate OR for a fold
-def train_model(train_index, test_index, X, y, conf, group):
+# Function to train the Logistic Regression model, and calculate OR for a fold
+def train_model(train_index, test_index, X, y, group):
     _, X_test = X.iloc[train_index,:], X.iloc[test_index,:]
     _, y_test = y.iloc[train_index], y.iloc[test_index]
 
-    model = XGBClassifier()
+    # # Fit logistic regression model
+    model = LogisticRegression(max_iter=10000)
     model.fit(X_test, y_test)
 
-    # SHAP explainer
-    explainer = shap.TreeExplainer(model, X_test)
-    shap_values = explainer(X_test, check_additivity=False)
-
-    shap_values = pd.DataFrame(shap_values.values, columns=conf)
-
-    OR_inner = calc_OR(shap_values, X_test.reset_index(drop=True), group)
+    idx = X_test.columns.get_loc(group)
+    param = model.coef_[0][idx]
+    OR_inner = np.exp(param)
 
     return OR_inner
 
@@ -198,7 +195,7 @@ for db in databases:
 
             # Get categorical columns
             categorical_columns = get_onject_columns(df)
-            print(f"Converting categorical columns: {categorical_columns}")
+            print(f"Converting ctegorical columns: {categorical_columns}")
             # convert categorical columns to dummies and get the new column names
             df = pd.get_dummies(df, columns=categorical_columns, drop_first=False)
             # remove categorical columns from confounders list and add the new columns in the dataset
@@ -257,7 +254,7 @@ for db in databases:
 
     # save results as we go
     try:
-        results = f"xgb_cv_all_coh_{db}"
+        results = f"LogReg_cv_all_coh_{db}"
         results_df.to_csv(f"results/models/{results}.csv", index=False)
     # if folder does not exist, create it and save results
     except:
