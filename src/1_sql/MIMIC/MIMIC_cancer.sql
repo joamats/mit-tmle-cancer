@@ -213,7 +213,15 @@ END AS VP_init_offset_d_abs,
   ) THEN 1
     ELSE 0
   END AS mortality_90
-  
+
+  , CASE WHEN (
+         discharge_location = "DIED"
+      OR discharge_location = "HOSPICE"
+      OR ABS(TIMESTAMP_DIFF(pat.dod,icu.icu_outtime,DAY)) <= 365
+  ) THEN 1
+    ELSE 0
+  END AS mortality_1y
+
   , icu.admittime
   , icu.dischtime
   

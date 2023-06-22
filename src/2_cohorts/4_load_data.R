@@ -21,6 +21,7 @@ load_data <- function(cohort){
       
       # create empty columns, as this info is missing in eICU
       data['mortality_90'] <- NA
+      data['mortality_1y'] <- NA
 
       # add date before dischtime to have same structure as in MIMIC
       data$dummy_date <- "2022-05-10"     
@@ -230,7 +231,7 @@ load_data <- function(cohort){
                   "charlson_cont", "CCI_ranges", "anchor_year_group", "adm_elective", "major_surgery",
                   "SOFA", "respiration", "coagulation", "liver", "cardiovascular", "cns", "renal",
                   "prob_mort", 
-                  "mortality_in", "los_icu", "free_days_hosp_28", "hour", "odd_hour", "comb_noso",
+                  "mortality_in", 'mortality_1y', "los_icu", "free_days_hosp_28", "hour", "odd_hour", "comb_noso",
                   "hospitalid", "numbedscategory", "teaching_hospital", "region",
                   "resp_rate_mean", "mbp_mean", "heart_rate_mean", "temperature_mean", "spo2_mean",
                   "po2_min", "pco2_max", "ph_min", "lactate_max", "glucose_max", "sodium_min",

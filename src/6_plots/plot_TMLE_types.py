@@ -27,7 +27,7 @@ for db in databases:
 
         df_out = df
         #plot_name = f"tmle_{db}_{out}"
-        title = f"TMLE for each treatment in {db}\n for outcome {out} "
+        title = f"TMLE for each treatment \n in database: {db} \n for outcome: {out} "
 
         # only keep data from outcome = mortality_in
         df_out = df_out[df_out.outcome ==  out]
@@ -72,14 +72,15 @@ for db in databases:
             axes[i].errorbar(x=df_out_temp2.cohort,
                             y=df_out_temp2.ATE,
                             yerr=((df_out_temp2.ATE- df_out_temp2.i_ci), (df_out_temp2.s_ci-df_out_temp2.ATE)),
-                            fmt='-o', c='firebrick', ecolor='firebrick', elinewidth=.4,
+                            fmt='o',  # Changed 'fmt' parameter to from '-o' to 'o' to remove the lines
+                            c='firebrick', ecolor='firebrick', elinewidth=.4,
                             linewidth=1.5, capsize=4, markeredgewidth=.4,
                             label="Cancer Patients")
 
             axes[i].axhline(y=0, xmin=0, xmax=1, c="black", linewidth=.7, linestyle='--')
             axes[i].set_ylim([-30, 30])
             axes[i].set_title(t_dict[t])
-            axes[0].set(ylabel="ATE (%)\nTreated vs. Not Treated")
+            axes[0].set(ylabel="ATE change in outcome (%)\n Treated vs. Not Treated")
             axes[2].legend(bbox_to_anchor=(1.05, 0.7), loc='upper left')
             axes[i].set_xticklabels(["Solid", "Hemat.", "Metast."])
             axes[i].set_xticks(range(3))

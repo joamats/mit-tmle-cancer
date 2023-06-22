@@ -1,5 +1,6 @@
 library(tmle)
 library(data.table)
+library(dply)
 
 ### Get the data ###
 # now read treatment from txt
@@ -19,6 +20,7 @@ cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 
 # Define the SL library
 SL_library <- read.delim("config/SL_libraries_base.txt")
+#SL_library <- read.delim("config/SL_libraries_SL.txt")
 
 # Define predicted mortality ranges
 prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
@@ -204,7 +206,7 @@ check_columns_in_df <- function(df, columns) {
   }
 }
 
-databases = c("mimic") # "all","eicu",
+databases = c("mimic") # "all","eicu","mimic"
 
 for (db in databases){
   print('***************')
@@ -229,6 +231,7 @@ for (db in databases){
                             "Q_weights",
                             "g_weights",
                             "RR"
+                            "Database"
                            )
                         
     group <- ""
@@ -308,6 +311,10 @@ for (db in databases){
     # Save results as we go
     dir.create("results/tmle", showWarnings = FALSE, recursive = TRUE)
     results <- paste0('tmle_results_', db)
+    
+    results_df <- bind_rows(results_df, results_df)
+    results_df <- results_df %>% mutate(Database = db)
+
     write.csv(results_df, file.path("results/tmle", paste0(results, ".csv")), row.names = FALSE)
 
 }

@@ -27,10 +27,10 @@ for db in databases:
 
         df_out = df
         plot_name = f"tmle_{db}_{out}"
-        title = f"TMLE for each treatment in {db}\n for outcome {out} "
+        title = f"TMLE for each treatment \n in database: {db} \n for outcome: {out} "
 
         # only keep data from outcome = mortality_in
-        df_out = df_out[df_out.outcome ==  out]
+        df_out = df_out[df_out.outcome == out]
 
         # only keep data from cohort = cancer_vsnocancer
         df_out = df_out[df_out.cohort == "cancer_vs_nocancer"]
@@ -86,12 +86,12 @@ for db in databases:
             axes[i].axhline(y=0, xmin=0, xmax=1, c="black", linewidth=.7, linestyle='--')
             axes[i].set_ylim([-30, 30])
             axes[i].set_title(t_dict[t])
-            axes[0].set(ylabel="ATE (%)\nTreated vs. Not Treated")
+            axes[0].set(ylabel="ATE change in outcome (%)\n Treated vs. Not Treated")
             axes[2].legend(bbox_to_anchor=(1.05, 0.7), loc='upper left')
-            axes[i].set_xticklabels(["0-6", "7-11", "12-21", ">21"])
-            axes[i].set_xticks(range(4))
+            axes[i].set_xticklabels(["0-10", "11-20", ">21"])
+            axes[i].set_xticks(range(3))
 
-        fig.supxlabel('\nPredicted in-hospital mortality')
+        fig.supxlabel('\nPredicted mortality (%)')
 
         # create 'results/plots/' folder if it does not exist
         if not os.path.exists('results/plots/'):
