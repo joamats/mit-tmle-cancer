@@ -110,6 +110,12 @@ To do so, run the following command in your terminal:
 python3 src/4_XGBoost/xgb_cv_all_coh.py
 ```
 
+And using Logistic Regression:
+
+```sh
+python3 src/4_XGBoost/logreg_cv_all_coh.py
+```
+
 ### 6. Run the TMLE analysis
 
 We made it really easy for you in this part. All you have to do is:
