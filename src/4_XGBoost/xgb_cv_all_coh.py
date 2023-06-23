@@ -14,7 +14,7 @@ import shap
 
 ### Constants ###
 # Number of folds used in cross-validation (also used as parallel processes)
-N_FOLDS = 8
+N_FOLDS = 5
 # Tests per cohort
 NREP = 5
 

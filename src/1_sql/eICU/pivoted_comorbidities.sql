@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `db_name.my_eICU.pivoted_comorbidities`;
 CREATE TABLE `db_name.my_eICU.pivoted_comorbidities` AS
-  
-  
+
+
   WITH temp_table AS (
 
   SELECT icu.patientunitstayid, 
@@ -107,17 +107,94 @@ CREATE TABLE `db_name.my_eICU.pivoted_comorbidities` AS
     END)
     AS diabetes_2
 
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%immunological%" 
+      AND 
+      (LOWER(diagnosisstring) NOT LIKE "%amyloidosis%" OR LOWER(diagnosisstring) NOT LIKE "%pulmonary%") THEN 1
+      ELSE NULL
+    END)
+    AS connective_disease_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%pneumonia%" 
+      AND LOWER(diagnosisstring) NOT LIKE "%|ventilator-associated%" THEN 1
+      ELSE NULL
+    END)
+    AS pneumonia_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%urinary tract%" 
+      AND LOWER(diagnosisstring) LIKE "%infection%" THEN 1
+      ELSE NULL
+    END)
+    AS uti_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%cholangitis%" 
+      OR LOWER(diagnosisstring) LIKE "%cholecystitis%" 
+      OR LOWER(diagnosisstring) LIKE "%pancreatitis|acute%" THEN 1
+      ELSE NULL
+    END)
+    AS biliary_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%skin%" 
+      AND LOWER(diagnosisstring) LIKE "infectio%" THEN 1
+      ELSE NULL
+    END)
+    AS skin_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%vascular catheter%" 
+      AND LOWER(diagnosisstring) LIKE "%infectio%" THEN 1
+      ELSE NULL
+    END)
+    AS clabsi_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%catheter%" 
+      AND LOWER(diagnosisstring) LIKE "%infectio%" 
+      AND (LOWER(diagnosisstring) like "%with in%" OR LOWER(diagnosisstring) like "%with foley%") 
+      THEN 1
+      ELSE NULL
+    END)
+    AS cauti_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) LIKE "%pneumonia%" 
+      AND LOWER(diagnosisstring) LIKE "%|ventilator-associated%" THEN 1
+      ELSE NULL
+    END)
+    AS vap_1
+
+    , MAX(
+    CASE
+      WHEN LOWER(diagnosisstring) like "%wound%" 
+      AND LOWER(diagnosisstring) like "%infectio%"  THEN 1
+      WHEN LOWER(diagnosisstring) like "%surgical%" 
+      AND LOWER(diagnosisstring) like "%infectio%"  THEN 1
+      ELSE NULL
+    END)
+    AS ssi_1
+
     FROM `physionet-data.eicu_crd.diagnosis`
     GROUP BY patientunitstayid
   )
   AS dx
   ON dx.patientunitstayid_dx = icu.patientunitstayid
 
-
   -- get missing values from past history
   LEFT JOIN(
     SELECT patientunitstayid AS patientunitstayid_ph
-    
+
     , MAX(
     CASE
       WHEN LOWER(pasthistorypath) LIKE "%hypertension%"
@@ -125,14 +202,14 @@ CREATE TABLE `db_name.my_eICU.pivoted_comorbidities` AS
       ELSE NULL
     END)
     AS hypertension_2
-    
+
     , MAX(
     CASE
       WHEN LOWER(pasthistorypath) LIKE "%heart fail%" THEN 1
       ELSE NULL
     END)
     AS heart_failure_2
-    
+
     , MAX(
     CASE
       WHEN LOWER(pasthistorypath) LIKE "%renal%"
@@ -167,7 +244,7 @@ CREATE TABLE `db_name.my_eICU.pivoted_comorbidities` AS
       ELSE NULL
     END)
     AS renal_25
-    
+
     , MAX(
     CASE
       WHEN LOWER(pasthistorypath) LIKE "%copd%" THEN 1
@@ -202,39 +279,7 @@ CREATE TABLE `db_name.my_eICU.pivoted_comorbidities` AS
   AS ph
   ON ph.patientunitstayid_ph = icu.patientunitstayid
 
-), 
-
- cirrhosis AS (
-    SELECT patientunitstayid, 1 AS cirrhosis_present
-    FROM (
-        SELECT distinct patientunitstayid 
-        FROM `physionet-data.eicu_crd.pasthistory` 
-        WHERE pasthistorypath
-        IN ("notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/jaundice",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/UGI bleeding",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/encephalopathy",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/ascites",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/varices",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/biopsy proven",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/clinical diagnosis",
-            "notes/Progress Notes/Past History/Organ Systems/Gastrointestinal (R)/Cirrhosis/coma"
-        )
-    UNION ALL
-    SELECT distinct patientunitstayid
-    FROM `physionet-data.eicu_crd.apachepredvar`
-    WHERE cirrhosis = 1
-
-    UNION ALL
-    SELECT distinct patientunitstayid
-    FROM `physionet-data.eicu_crd.diagnosis`
-    WHERE diagnosisstring
-    IN ("gastrointestinal|hepatic disease|hepatic dysfunction|with cirrhosis",
-        "gastrointestinal|hepatic disease|hepatic dysfunction|with cirrhosis|biliary",
-        "gastrointestinal|hepatic disease|hepatic dysfunction|with cirrhosis|alcoholic",
-        "gastrointestinal|hepatic disease|hepatic dysfunction|with cirrhosis|cryptogenic"
-       )
-    )
- )
+)
 
 SELECT temp_table.patientunitstayid
 
@@ -250,7 +295,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%I16%"
     OR icd_codes LIKE "%I70%"
     THEN 1
-    ELSE 0
+    ELSE NULL
     END AS hypertension_present
 
   , CASE 
@@ -263,7 +308,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%I43%"
     OR icd_codes LIKE "%I517%"
     THEN 1
-    ELSE 0
+    ELSE NULL
     END AS heart_failure_present
 
   , CASE 
@@ -271,7 +316,7 @@ SELECT temp_table.patientunitstayid
     OR asthma_2 IS NOT NULL
     OR icd_codes LIKE "%J841%"
     THEN 1
-    ELSE 0
+    ELSE NULL
     END AS asthma_present
 
   , CASE 
@@ -285,7 +330,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%J46%"
     OR icd_codes LIKE "%J47%"
     THEN 1
-    ELSE 0
+    ELSE NULL
     END AS copd_present
 
   , CASE 
@@ -298,7 +343,7 @@ SELECT temp_table.patientunitstayid
     OR icd_codes LIKE "%I24%"
     OR icd_codes LIKE "%I25%"
     THEN 1
-    ELSE 0
+    ELSE NULL
     END AS cad_present
 
   , CASE 
@@ -322,7 +367,7 @@ SELECT temp_table.patientunitstayid
       OR icd_codes LIKE "%N185%"
       OR icd_codes LIKE "%N186%"
     THEN 5
-    ELSE 0
+    ELSE NULL
     END AS ckd_stages
 
   , CASE 
@@ -336,18 +381,92 @@ SELECT temp_table.patientunitstayid
       OR diabetes_3 IS NOT NULL
       OR icd_codes LIKE "%E11%"
     THEN 2
-    ELSE 0
+    ELSE NULL
     END AS diabetes_types
 
-  , CASE
-  WHEN cirrhosis.cirrhosis_present = 1
-  THEN 1
-  ELSE 0
-  END AS cirrhosis_present
+-- connective tissue disease as defined in Elixhauser comorbidity score
+  , CASE 
+      WHEN connective_disease_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%L940" THEN 1
+      WHEN icd_codes LIKE "%L941" THEN 1
+      WHEN icd_codes LIKE "%L943%" THEN 1
+      WHEN icd_codes LIKE "%M05%" THEN 1
+      WHEN icd_codes LIKE "%M06%" THEN 1
+      WHEN icd_codes LIKE "%M08%" THEN 1
+      WHEN icd_codes LIKE "%M120" THEN 1
+      WHEN icd_codes LIKE "%M123" THEN 1
+      WHEN icd_codes LIKE "%M30%" THEN 1
+      WHEN icd_codes LIKE "%M310%" THEN 1
+      WHEN icd_codes LIKE "%M311%" THEN 1
+      WHEN icd_codes LIKE "%M312%" THEN 1
+      WHEN icd_codes LIKE "%M313%" THEN 1
+      WHEN icd_codes LIKE "%M32%" THEN 1
+      WHEN icd_codes LIKE "%M33%" THEN 1
+      WHEN icd_codes LIKE "%M34%" THEN 1
+      WHEN icd_codes LIKE "%M35%" THEN 1
+      WHEN icd_codes LIKE "%M45%" THEN 1
+      WHEN icd_codes LIKE "%M461%" THEN 1
+      WHEN icd_codes LIKE "%M468%" THEN 1
+      WHEN icd_codes LIKE "%M469%" THEN 1
+    ELSE NULL
+  END AS connective_disease
+-- connective tissue disease as defined in Elixhauser comorbidity score  
+
+  ,CASE 
+      WHEN pneumonia_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%J09%" THEN 1
+      WHEN icd_codes LIKE "%J1%" THEN 1
+      WHEN icd_codes LIKE "%J85%" THEN 1
+      WHEN icd_codes LIKE "%J86%" THEN 1
+      ELSE NULL
+  END AS pneumonia  
+
+  ,CASE 
+      WHEN uti_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%N300%" THEN 1
+      WHEN icd_codes LIKE "%N390%" THEN 1       
+      ELSE NULL
+  END AS uti
+
+  ,CASE 
+      WHEN biliary_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%K81%" THEN 1
+      WHEN icd_codes LIKE "%K830%" THEN 1
+      WHEN icd_codes LIKE "%K851%" THEN 1  
+      ELSE NULL
+  END AS biliary
+
+  ,CASE      
+      WHEN skin_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%L0%" THEN 1       
+      ELSE NULL
+  END AS skin
+
+-- hospital acquired infections 
+   , CASE 
+      WHEN clabsi_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%T80211%" THEN 1
+      ELSE NULL
+  END AS clabsi
+
+ , CASE 
+      WHEN cauti_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%T83511%" THEN 1
+      ELSE NULL
+  END AS cauti
+
+ , CASE 
+      WHEN ssi_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%T814%" THEN 1
+      ELSE NULL
+  END AS ssi
+
+ , CASE 
+      WHEN vap_1 IS NOT NULL THEN 1
+      WHEN icd_codes LIKE "%J95851%" THEN 1
+      ELSE NULL
+  END AS vap 
+
 
   FROM temp_table
-
-  LEFT JOIN cirrhosis
-  ON cirrhosis.patientunitstayid = temp_table.patientunitstayid
-
   ORDER BY patientunitstayid
