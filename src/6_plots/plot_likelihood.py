@@ -64,11 +64,17 @@ def plot_results(filename, model_name):
 
 filenames = ["logreg_cv_all_coh_all",
              "logreg_cv_all_coh_mimic",
-             "logreg_cv_all_coh_eicu"]
+             "logreg_cv_all_coh_eicu", 
+             "xgb_cv_all_coh_all",
+             "xgb_cv_all_coh_mimic",
+             "xgb_cv_all_coh_eicu"]
 
 model_names = ["Logistic Regression All",
                "Logistic Regression MIMIC-IV",
-               "Logistic Regression eICU-CRD"]
+               "Logistic Regression eICU-CRD",
+               "XGBoost All",
+               "XGBoost MIMIC-IV",
+               "XGBoost eICU-CRD"]
 
 for f, m in zip(filenames, model_names):
     plot_results(f, m)
