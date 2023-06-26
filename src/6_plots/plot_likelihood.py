@@ -50,7 +50,7 @@ def plot_results(filename, model_name):
         # set yticks in string format
         # ax.set_yticks([3,6,9,12])
         ax.set_yticklabels(cancer_names)
-        ax.set_xlabel("       Favours Cancer | Favours Non-Cancer",
+        ax.set_xlabel("Favours Non-Cancer | Favours Cancer        ",
                     fontsize=8, labelpad=5, color='gray')
         
 
