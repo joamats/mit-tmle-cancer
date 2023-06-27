@@ -163,7 +163,7 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                topclass="Rtable1-grid Rtable1-shade Rtable1-times",
                render.categorical=render.categorical,
                render.strat=render.strat,
-               render.continuous=c(.="Mean (SD)", .="Median (Q2, Q3)")
+               render.continuous=c(.="Mean (SD)", .="Median (Q1, Q3)")
               )
 
 
@@ -189,7 +189,7 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                topclass="Rtable1-grid Rtable1-shade Rtable1-times",
                render.categorical=render.categorical,
                render.strat=render.strat,
-               render.continuous=c(.="Mean (SD)", .="Median (Q2, Q3)")
+               render.continuous=c(.="Mean (SD)", .="Median (Q1, Q3)")
               )
 
 # Convert to flextable
