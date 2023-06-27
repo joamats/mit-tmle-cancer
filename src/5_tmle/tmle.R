@@ -1,6 +1,6 @@
 library(tmle)
 library(data.table)
-library(dply)
+library(dplyr)
 
 ### Get the data ###
 # now read treatment from txt
@@ -19,8 +19,8 @@ cohorts <- read.delim("config/cohorts.txt")$cohorts
 cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 
 # Define the SL library
-SL_library <- read.delim("config/SL_libraries_base.txt")
-#SL_library <- read.delim("config/SL_libraries_SL.txt")
+#SL_library <- read.delim("config/SL_libraries_base.txt")
+SL_library <- read.delim("config/SL_libraries_SL.txt")
 
 # Define predicted mortality ranges
 prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
@@ -30,7 +30,7 @@ FIRST <- TRUE
 
 # run TMLE 
 run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
-                     cohort, sev_min, sev_max, results_df, group_true) {
+                     cohort, sev_min, sev_max, results_df, group_true, db) {
     
     W <- data[, confounders]
     A <- data[, treatment]
@@ -99,7 +99,8 @@ run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
                                             paste(SL_libraries$SL_library, collapse = " "),
                                             paste(result$Qinit$coef, collapse = " "),
                                             paste(result$g$coef, collapse = " "),
-                                            RR                                    
+                                            RR,
+                                            db                                
                                             ) 
     return (results_df)
 }
@@ -145,7 +146,7 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                         
                         # Run TMLE                        
                         results_df = run_tmle(data_subsub, treatment, conf, outcome, SL_libraries,
-                                            cohort, sev_min, sev_max, results_df, group_true)
+                                            cohort, sev_min, sev_max, results_df, group_true, db)
                     }
 
                 } else {
@@ -161,7 +162,7 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
 
                     # Run TMLE
                     results_df = run_tmle(data_subsub, treatment, conf, outcome, SL_libraries,
-                                            cohort, sev_min, sev_max, results_df, group_true)
+                                            cohort, sev_min, sev_max, results_df, group_true, db)
                 }
 
                 # When group is false: group = 0
@@ -186,7 +187,7 @@ calculate_tmle_per_cohort <- function(data, groups, treatments, outcomes, confou
                             data_subsub <- subset(data_subset, prob_mort >= sev_min & prob_mort < sev_max)
                             # Run TMLE
                             results_df = run_tmle(data_subsub, treatment, confounders, outcome, SL_libraries,
-                                                    cohort, sev_min, sev_max, results_df, group_true)
+                                                    cohort, sev_min, sev_max, results_df, group_true, db)
                         }
                 }   
             }
@@ -206,7 +207,7 @@ check_columns_in_df <- function(df, columns) {
   }
 }
 
-databases = c("mimic") # "all","eicu","mimic"
+databases = c("mimic") # "all", "eicu", "mimic"
 
 for (db in databases){
   print('***************')
@@ -214,7 +215,7 @@ for (db in databases){
   print('***************')
   
     # create data.frames to store results
-    results_df <- data.frame(matrix(ncol=15, nrow=0))
+    results_df <- data.frame(matrix(ncol=16, nrow=0))
     colnames(results_df) <- c(
                             "outcome",
                             "treatment",
@@ -230,7 +231,7 @@ for (db in databases){
                             "SL_libraries",
                             "Q_weights",
                             "g_weights",
-                            "RR"
+                            "RR",
                             "Database"
                            )
                         
