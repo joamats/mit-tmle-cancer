@@ -10,7 +10,8 @@ treatments <- read.delim("config/treatments.txt")$treatment
 confounders <- read.delim("config/confounders.txt")$confounder
 
 # read the cofounders from list in txt
-outcomes <- read.delim("config/outcomes.txt")$outcome
+outcomes <- read.delim("config/outcomes 1y.txt")$outcome
+#outcomes <- read.delim("config/outcomes.txt")$outcome
 
 # Get the cohorts
 cohorts <- read.delim("config/cohorts.txt")$cohorts
@@ -19,8 +20,8 @@ cohorts <- read.delim("config/cohorts.txt")$cohorts
 cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 
 # Define the SL library
-#SL_library <- read.delim("config/SL_libraries_base.txt")
-SL_library <- read.delim("config/SL_libraries_SL.txt")
+SL_library <- read.delim("config/SL_libraries_base.txt")
+#SL_library <- read.delim("config/SL_libraries_SL.txt")
 
 # Define predicted mortality ranges
 prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
@@ -316,6 +317,6 @@ for (db in databases){
     results_df <- bind_rows(results_df, results_df)
     results_df <- results_df %>% mutate(Database = db)
 
-    write.csv(results_df, file.path("results/tmle", paste0(results, ".csv")), row.names = FALSE)
+    write.csv(results_df, file.path("results/tmle", paste0(results, "_1y.csv")), row.names = FALSE)
 
 }

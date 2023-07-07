@@ -1,0 +1,6 @@
+,outcome,treatment,cohort,group,has_cancer,prob_mort_start,prob_mort_end,psi,i_ci,s_ci,pvalue,n,SL_libraries,Q_weights,g_weights
+1,mortality_1y,none,cancer_vs_nocancer,all,0,0,1,0.303991086,0.297334365,0.310647807,0,19744,SL.glm SL.mean,0.984286074025892 0.0157139259741083,NA
+2,mortality_1y,none,cancer_vs_nocancer,all,1,0,1,0.62116129,0.605285705,0.637036876,0,3875,SL.glm SL.mean,0.955230580390046 0.0447694196099543,NA
+3,mortality_1y,none,cancer_type,group_solid,1,0,1,0.481818182,0.454830441,0.508805922,2.94E-268,1430,SL.glm SL.mean,0.803636717834964 0.196363282165036,
+4,mortality_1y,none,cancer_type,group_hematological,1,0,1,0.582417582,0.548974019,0.615861146,2.37E-255,910,SL.glm SL.mean,0.778478490344004 0.221521509655995,
+5,mortality_1y,none,cancer_type,group_metastasized,1,0,1,0.773941368,0.752092643,0.795790094,0,1535,SL.glm SL.mean,0.785717538860668 0.214282461139332,
