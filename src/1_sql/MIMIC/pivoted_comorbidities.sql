@@ -82,6 +82,16 @@ SELECT DISTINCT
     ELSE NULL
   END AS diabetes_types
 
+  , CASE 
+      WHEN icd_codes LIKE "%E10.10%" THEN 1
+      WHEN icd_codes LIKE "%E10.11%" THEN 1
+      WHEN icd_codes LIKE "%E11.10%" THEN 1
+      WHEN icd_codes LIKE "%E11.11%" THEN 1
+      WHEN icd_codes LIKE "%E13.10%" THEN 1
+      WHEN icd_codes LIKE "%E13.11%" THEN 1
+      ELSE NULL
+  END AS dka_present
+
 -- connective tissue disease as defined in Elixhauser comorbidity score
   , CASE 
       WHEN icd_codes LIKE "%L940" THEN 1
