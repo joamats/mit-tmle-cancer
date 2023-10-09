@@ -18,7 +18,7 @@ def plot_results(filename, model_name):
     # Set the figure and axes
     # fig, axes = plt.subplots(1, 3, sharex=True, sharey=True, figsize=(9, 3.5)) # for 3 subplots
     fig, axes = plt.subplots(
-        1, 2, sharex=True, sharey=True, figsize=(7.5, 3.5)
+        2, 1, sharex=True, sharey=True, figsize=(6, 7)
     )  # for 2 subplots
 
     fig.suptitle(f"{model_name}: Likelihood of Treatment Initiation")
@@ -55,13 +55,13 @@ def plot_results(filename, model_name):
         # ax.set_yticks([3,6,9,12])
         ax.set_yticklabels(cancer_names)
         ax.set_xlabel(
-            "Non-Cancer more likely | Cancer more likely        ",
+            " Non-Cancer more likely | Cancer more likely        ",
             fontsize=8,
             labelpad=5,
             color="gray",
         )
 
-    fig.supxlabel("Odds Ratio (95% CI)")
+    fig.supxlabel("                                Odds Ratio (95% CI)")
     fig.supylabel("Cancer Type")
     plt.tight_layout()
 
@@ -83,9 +83,9 @@ model_names = [
     # "Logistic Regression All",
     # "Logistic Regression MIMIC-IV",
     # "Logistic Regression eICU-CRD",
-    "XGBoost All",
-    "XGBoost MIMIC-IV",
-    "XGBoost eICU-CRD",
+    "XGBoost Models",
+    "XGBoost Models",
+    "XGBoost Models",
 ]
 
 for f, m in zip(filenames, model_names):
