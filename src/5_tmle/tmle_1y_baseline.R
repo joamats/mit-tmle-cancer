@@ -1,29 +1,39 @@
 #source("src/2_cohorts/4_load_data.R")
 source("src/2_cohorts/utils.R")
 
+# Set seed
+set.seed(19840402)
+
+# Initialize parallel processing
+plan(multicore, workers = 8, .cleanup = TRUE)
+message("Number of parallel workers: ", nbrOfWorkers())
+
 # run TMLE 
-run_tmle <- function(data, treatment, confounders, outcome, SL_libraries,
+run_tmle %<-% function(data, treatment, confounders, outcome, SL_libraries,
                      cohort, group, has_cancer, sev_min, sev_max, results_df) {
-        
+    
     W <- data[, confounders]
     data$none <- 1
     A <- data[, treatment]
     Y <- data[, outcome]
-   
+
     result <- tmle(
                 Y = Y,
-                A = NULL,
+                A = A,
+                # A = NULL,
                 W = W,
                 family = "binomial", 
                 gbound = c(0.05, 0.95),
                 g.SL.library = SL_libraries$SL_library,
                 Q.SL.library = SL_libraries$SL_library,
-                V=2
+                V=5
                 )
 
     log <- summary(result)   
-print("has cancer status")
-print(has_cancer)
+
+    print("has cancer status")
+    print(has_cancer)
+
     results_df[nrow(results_df) + 1,] <- c( outcome,
                                             treatment,
                                             cohort,
@@ -45,12 +55,11 @@ print(has_cancer)
 }
 
 # Main
-outcomes <- c('mortality_1y') # just 'mortality_1y'
+outcome <- c('mortality_1y') # just 'mortality_1y'
 treatment <- c("none")
 
 # Confounders
 confounders <- read.delim(paste0("config/confounders.txt"))
-
 # Remove the following from the confounder list as not varying in MIMIC
 confounders <- unlist(confounders)
 confounders <- confounders[!(confounders %in% c("hospitalid", "numbedscategory", "teaching_hospital", "region"))]
@@ -63,16 +72,20 @@ cancer_types <- read.delim("config/cancer_types.txt")$cancer_type
 groups <- cancer_types
 has_cancer <- c(0,1)
 
-# simply use one overall range for this use case
+# simply use the overall range for this use case
 prob_mort_ranges <- read.csv("config/prob_mort_ranges.csv")
 prob_mort_ranges <- prob_mort_ranges[prob_mort_ranges$min == 0 & prob_mort_ranges$max == 1, ]
 
-#SL_libraries <- read.delim("config/SL_libraries_SL.txt") # or use only base libraries, see below
-SL_libraries <- read.delim("config/SL_libraries_base.txt") # or read.delim("config/SL_libraries_SL.txt")
+SL_libraries <- read.delim("config/SL_libraries_SL.txt") # or use only base libraries, see below
+#SL_libraries <- read.delim("config/SL_libraries_base.txt") # or read.delim("config/SL_libraries_SL.txt")
 
 
 # Read Data for this database and cohort
 data <- read.csv("data/cohorts/merged_mimic_all.csv")
+
+# Fixing wierd error -> checked dataframe -> row 1 problem, in csv outcome == 1
+# Replace NULL values in the outcome column with 1
+data$outcome <- replace(data$outcome, is.null(data$outcome), 1)
 
 print(paste0("Outcome: ", outcome))
 
@@ -158,5 +171,6 @@ for (c in cohorts) {
 
 
 # Save Results
-write.csv(results_df, paste0("results/tmle/SAs/mimic_base_", outcome, ".csv"))
+write.csv(results_df, paste0("results/tmle/SAs/tmle_results", outcome, ".csv"))
+#write.csv(results_df, paste0("results/tmle/SAs/mimic_base_", outcome, ".csv"))
         

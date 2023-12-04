@@ -1,4 +1,5 @@
 library(tmle)
+library(future)
 
 read_confounders <- function(j, treatments, confounders) {
 
