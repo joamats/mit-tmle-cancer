@@ -1,7 +1,12 @@
 import pandas as pd
 import os
 import numpy as np
-from utils import get_demography, print_demo, get_treatment_groups, comparte_resulting_cohort_datasets
+from utils import (
+    get_demography,
+    print_demo,
+    get_treatment_groups,
+    comparte_resulting_cohort_datasets,
+)
 
 # MIMIC
 df0 = pd.read_csv("data/MIMIC.csv")
@@ -40,61 +45,41 @@ print(f"{len(df3)} stays with sepsis, LoS > 24h, adult patient \n({demo3})\n")
 df4 = df3[df3.oasis_prob != np.nan]
 print(f"Removed {len(df3) - len(df4)} stays with missing OASIS predictions")
 demo4 = print_demo(get_demography(df4))
-print(f"{len(df4)} stays with sepsis, LoS > 24h, adult patient, OASIS present \n({demo4})\n")
+print(
+    f"{len(df4)} stays with sepsis, LoS > 24h, adult patient, OASIS present \n({demo4})\n"
+)
 
 # Rename oasis_prob column to match eICU
-df4 = df4.rename(columns={'oasis_prob': 'prob_mort'})
+df4 = df4.rename(columns={"oasis_prob": "prob_mort"})
 
 # Remove recurrent stays
-df5 = df4.sort_values(by=["subject_id", "hadm_id", "icustay_seq"], ascending=True).groupby(
-    'subject_id').apply(lambda group: group.iloc[0, 1:])
+df5 = (
+    df4.sort_values(by=["subject_id", "hadm_id", "icustay_seq"], ascending=True)
+    .groupby("subject_id")
+    .apply(lambda group: group.iloc[0, 1:])
+)
 print(f"Removed {len(df4) - len(df5)} recurrent stays")
 demo5 = print_demo(get_demography(df5))
-print(f"{len(df5)} stays with sepsis, LoS > 24h, adult stays, OASIS present, non-recurrent \n({demo5})\n")
+print(
+    f"{len(df5)} stays with sepsis, LoS > 24h, adult stays, OASIS present, non-recurrent \n({demo5})\n"
+)
 
 # create 'data/cohorts/' folder if it does not exist
-if not os.path.exists('data/cohorts/'):
-    os.makedirs('data/cohorts/')
+if not os.path.exists("data/cohorts/"):
+    os.makedirs("data/cohorts/")
 
 # Save full cohort
-df5.to_csv('data/cohorts/MIMIC_all.csv', index=False)
+df5.to_csv("data/cohorts/MIMIC_all.csv", index=False)
 print(f"Saving full cohort to data/cohorts/MIMIC_all.csv\n")
 
-# Commented out survivor cohorts -> Tristan
-
-# # Remove patients who died in the ICU
-# df4s = df4[df4.mortality_in == 0]
-# print(f"Removed {len(df4) - len(df4s)} non-surviving stays")
-# demo4s = print_demo(get_demography(df4s))
-# print(f"{len(df4s)} stays with sepsis, LoS > 24h, non-recurrent, adult, surviving stays \n({demo4s})\n")
-
-# # Save full surviving cohort
-# df4s.to_csv('data/cohorts/MIMIC_all_surviving.csv', index=False)
-# print(f"Saving full cohort to data/cohorts/MIMIC_all_surviving.csv\n")
-
-# Remove non-cancer patients, but we take recurrent stays too
-df6 = df4[df4.has_cancer == 1]
-print(f"\nRemoved {len(df4) - len(df6)} non-cancer stays")
+# Remove non-cancer patients
+df6 = df5[df5.has_cancer == 1]
+print(f"\nRemoved {len(df5) - len(df6)} non-cancer stays")
 demo6 = print_demo(get_demography(df6))
-print(f"{len(df6)} stays with sepsis, LoS > 24h, adult stays, OASIS present, cancer \n({demo6})\n")
-
-# Remove recurrent stays
-df7 = df6.sort_values(by=["subject_id", "hadm_id", "icustay_seq"], ascending=True).groupby(
-    'subject_id').apply(lambda group: group.iloc[0, 1:])
-print(f"Removed {len(df6) - len(df7)} recurrent stays")
-demo7 = print_demo(get_demography(df7))
-print(f"{len(df7)} stays with sepsis, LoS > 24h, adult, OASIS present, cancer, non-recurrent stays \n({demo6})\n")
+print(
+    f"{len(df6)} stays with sepsis, LoS > 24h, adult stays, OASIS present, cancer \n({demo6})\n"
+)
 
 # Save cancer cohort
-df7.to_csv('data/cohorts/MIMIC_cancer.csv', index=False)
+df6.to_csv("data/cohorts/MIMIC_cancer.csv", index=False)
 print(f"Saving cancer cohort to data/cohorts/MIMIC_cancer.csv\n")
-
-# # Remove cancer patients who died in the ICU
-# df6s = df6[df6.mortality_in == 0]
-# print(f"Removed {len(df6) - len(df6s)} non-surviving stays")
-# demo6s = print_demo(get_demography(df6s))
-# print(f"{len(df6s)} stays with sepsis, LoS > 24h, non-recurrent, adult, surviving stays \n({demo6s})\n")
-
-# # Save full surviving cohort
-# df6s.to_csv('data/cohorts/MIMIC_cancer_surviving.csv', index=False)
-# print(f"Saving full cohort to data/cohorts/MIMIC_cancer_surviving.csv\n")

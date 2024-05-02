@@ -156,16 +156,20 @@ END AS VP_init_offset_d_abs,
   , cancer.loc_colon_rectal
   , cancer.loc_liver_bd
   , cancer.loc_pancreatic
+  , cancer.loc_other_digestive
   , cancer.loc_lung_bronchus
+  , cancer.loc_other_respiratory
+  , cancer.loc_other_mesothelial
   , cancer.loc_melanoma
   , cancer.loc_breast
-  , cancer.loc_endometrial
-  , cancer.loc_prostate
-  , cancer.loc_kidney
-  , cancer.loc_bladder
-  , cancer.loc_thyroid
-  , cancer.loc_nhl
+  , cancer.loc_female_genital
+  , cancer.loc_male_genital
+  , cancer.loc_renal_urinary
+  , cancer.loc_endocrine
+  , cancer.loc_lymphomas
   , cancer.loc_leukemia
+  , cancer.loc_other_hematological
+  , cancer.loc_others
   , coms.hypertension_present
   , coms.heart_failure_present
   , coms.copd_present

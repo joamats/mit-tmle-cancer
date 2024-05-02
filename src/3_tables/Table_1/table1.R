@@ -49,7 +49,7 @@ df <- df %>% mutate(loc_prostate = ifelse(loc_prostate == 1, "Present", "Not Pre
 df <- df %>% mutate(loc_kidney = ifelse(loc_kidney == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_bladder = ifelse(loc_bladder == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_thyroid = ifelse(loc_thyroid == 1, "Present", "Not Present"))
-df <- df %>% mutate(loc_nhl = ifelse(loc_nhl == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_lymphomas = ifelse(loc_lymphomas == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_leukemia = ifelse(loc_leukemia == 1, "Present", "Not Present"))
 
 # Get data into factor format
@@ -109,19 +109,23 @@ label(df$group_solid) <- "Solid Cancer"
 label(df$group_hematological) <- "Hematological Cancer"
 label(df$group_metastasized) <- "Metastasized Cancer"
 
-label(df$loc_breast) <- "Breast"
-label(df$loc_prostate) <- "Prostate"
-label(df$loc_lung_bronchus) <- "Lung (including bronchus)"
 label(df$loc_colon_rectal) <- "Colon and Rectal (combined)"
-label(df$loc_melanoma) <- "Melanoma"
-label(df$loc_bladder) <- "Bladder"
-label(df$loc_kidney) <- "Kidney"
-label(df$loc_nhl) <- "NHL"
-label(df$loc_endometrial) <- "Endometrial"
-label(df$loc_leukemia) <- "Leukemia"
-label(df$loc_pancreatic) <- "Pancreatic"
-label(df$loc_thyroid) <- "Thyroid"
 label(df$loc_liver_bd) <- "Liver and intrahepatic BD"
+label(df$loc_pancreatic) <- "Pancreatic"
+label(df$loc_other_digestive) <- "Other Digestive"
+label(df$loc_lung_bronchus) <- "Lung (including bronchus)"
+label(df$loc_other_respiratory) <- "Other Respiratory"
+label(df$loc_other_mesothelial) <- "Other Mesothelial"
+label(df$loc_melanoma) <- "Melanoma"
+label(df$loc_breast) <- "Breast"
+label(df$loc_female_genital) <- "Female Genital"
+label(df$loc_male_genital) <- "Male Genital"
+label(df$loc_renal_urinary) <- "Renal and Urinary"
+label(df$loc_endocrine) <- "Endocrine"
+label(df$loc_lymphomas) <- "Lymphomas"
+label(df$loc_leukemia) <- "Leukemia"
+label(df$loc_other_hematological) <- "Other Hematological"
+label(df$loc_others) <- "Others"
 
 label(df$hypertension_present) <- "Hypertension"
 label(df$heart_failure_present) <- "Heart Failure"
@@ -153,10 +157,11 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                hypertension_present + heart_failure_present +
                asthma_present + copd_present + ckd_stages + 
                group_solid + group_hematological + group_metastasized +
-               loc_colon_rectal + loc_liver_bd + loc_pancreatic +
-               loc_lung_bronchus + loc_melanoma + loc_breast +
-               loc_endometrial + loc_prostate + loc_kidney +
-               loc_bladder + loc_thyroid + loc_nhl + loc_leukemia
+               loc_colon_rectal + loc_liver_bd + loc_pancreatic + loc_other_digestive +
+               loc_lung_bronchus + loc_other_respiratory + loc_other_mesothelial + 
+               loc_melanoma + loc_breast +
+               loc_female_genital + loc_male_genital + loc_renal_urinary +
+               loc_endocrine + loc_lymphomas + loc_leukemia + loc_other_hematological + loc_others
                | has_cancer,
                data=df,
                render.missing=NULL,
@@ -165,7 +170,6 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                render.strat=render.strat,
                render.continuous=c(.="Mean (SD)", .="Median (Q1, Q3)")
               )
-
 
 # Convert to flextable
 t1flex(tbl1) %>% save_as_docx(path="results/table1/1A_by_cancer.docx")
@@ -179,10 +183,11 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                hypertension_present + heart_failure_present +
                asthma_present + copd_present + ckd_stages + 
                group_solid + group_hematological + group_metastasized +
-               loc_colon_rectal + loc_liver_bd + loc_pancreatic +
-               loc_lung_bronchus + loc_melanoma + loc_breast +
-               loc_endometrial + loc_prostate + loc_kidney +
-               loc_bladder + loc_thyroid + loc_nhl + loc_leukemia
+               loc_colon_rectal + loc_liver_bd + loc_pancreatic + loc_other_digestive +
+               loc_lung_bronchus + loc_other_respiratory + loc_other_mesothelial + 
+               loc_melanoma + loc_breast +
+               loc_female_genital + loc_male_genital + loc_renal_urinary +
+               loc_endocrine + loc_lymphomas + loc_leukemia + loc_other_hematological + loc_others
                | source,
                data=df,
                render.missing=NULL,
