@@ -16,6 +16,23 @@ print(f"{len(df0)} stays in the ICU")
 df0.language = df0.language.apply(lambda x: 1 if x == "ENGLISH" else 0)
 df0.rename(columns={"language": "eng_prof"}, inplace=True)
 
+# Replace faulty has_cancer and group_solid patients from earlier dataset WITH 1 instead of 0
+df_new = pd.read_csv("data/cohorts/MIMIC_all.csv")
+df_old = pd.read_csv("data/backup/cohorts/MIMIC_all.csv")
+# Merge the two dataframes on the 'stay_id' column
+merged_df = pd.merge(
+    df_new, df_old, on="stay_id", suffixes=("_n", "_o"), how="inner", copy=True
+)
+# Filter the merged dataframe to find the rows where 'has_cancer' is 0 in df_n and 1 in df_o
+non_matching_cases = merged_df[
+    (merged_df["has_cancer_n"] == 0) & (merged_df["has_cancer_o"] == 1)
+]
+# Extract the 'stay_id' of the non matching cases
+non_matching_stay_ids = non_matching_cases["stay_id"]
+
+# print(non_matching_stay_ids)
+df0.loc[df0.stay_id.isin(non_matching_stay_ids), ["has_cancer", "group_solid"]] = 1
+
 # Get treatment groups
 df0 = get_treatment_groups(df0)
 

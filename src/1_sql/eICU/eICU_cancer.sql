@@ -96,10 +96,10 @@ SELECT DISTINCT
   , cancer.loc_female_genital
   , cancer.loc_male_genital
   , cancer.loc_renal_urinary
+  , cancer.loc_cns
   , cancer.loc_endocrine
   , cancer.loc_lymphomas
   , cancer.loc_leukemia
-  , cancer.loc_other_hematological
   , cancer.loc_others
   , coms.hypertension_present
   , coms.heart_failure_present

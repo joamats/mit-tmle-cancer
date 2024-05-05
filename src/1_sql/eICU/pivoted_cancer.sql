@@ -41,7 +41,8 @@ END AS cat_metastasized
     OR icd_codes LIKE "%C92%" 
     OR icd_codes LIKE "%C93%" 
     OR icd_codes LIKE "%C94%" 
-    OR icd_codes LIKE "%C95%" 
+    OR icd_codes LIKE "%C95%"
+    OR icd_codes LIKE "%C96%"
 ) THEN 1
   ELSE 0
 END AS cat_hematological
@@ -190,12 +191,6 @@ END AS cat_hematological
   END AS loc_leukemia
 
   , CASE WHEN (
-       icd_codes LIKE "%C96%"
-  ) THEN 1
-    ELSE 0
-  END AS loc_other_hematological
-
-  , CASE WHEN (
        icd_codes LIKE "%C76%"
     OR icd_codes LIKE "%C77%"
     OR icd_codes LIKE "%C78%"
@@ -236,10 +231,10 @@ SELECT
   , loc_female_genital
   , loc_male_genital
   , loc_renal_urinary
+  , loc_cns
   , loc_endocrine
   , loc_lymphomas
   , loc_leukemia
-  , loc_other_hematological
   , loc_others
 
   , CASE

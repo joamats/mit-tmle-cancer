@@ -51,6 +51,7 @@ WITH cnc AS (
       OR icd_codes LIKE "%C93%" 
       OR icd_codes LIKE "%C94%" 
       OR icd_codes LIKE "%C95%" 
+      OR icd_codes LIKE "%C96%" 
   ) THEN 1
     ELSE 0
   END AS cat_hematological
@@ -199,12 +200,6 @@ WITH cnc AS (
   END AS loc_leukemia
 
   , CASE WHEN (
-       icd_codes LIKE "%C96%"
-  ) THEN 1
-    ELSE 0
-  END AS loc_other_hematological
-
-  , CASE WHEN (
        icd_codes LIKE "%C76%"
     OR icd_codes LIKE "%C77%"
     OR icd_codes LIKE "%C78%"
@@ -241,6 +236,7 @@ SELECT
   , loc_male_genital
   , loc_renal_urinary
   , loc_endocrine
+  , loc_cns
   , loc_lymphomas
   , loc_leukemia
   , loc_other_hematological

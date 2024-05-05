@@ -41,16 +41,20 @@ df <- df %>% mutate(group_metastasized = ifelse(group_metastasized == 1, "Presen
 df <- df %>% mutate(loc_colon_rectal = ifelse(loc_colon_rectal == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_liver_bd = ifelse(loc_liver_bd == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_pancreatic = ifelse(loc_pancreatic == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_other_digestive = ifelse(loc_other_digestive == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_lung_bronchus = ifelse(loc_lung_bronchus == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_other_respiratory = ifelse(loc_other_respiratory == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_other_mesothelial = ifelse(loc_other_mesothelial == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_melanoma = ifelse(loc_melanoma == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_breast = ifelse(loc_breast == 1, "Present", "Not Present"))
-df <- df %>% mutate(loc_endometrial = ifelse(loc_endometrial == 1, "Present", "Not Present"))
-df <- df %>% mutate(loc_prostate = ifelse(loc_prostate == 1, "Present", "Not Present"))
-df <- df %>% mutate(loc_kidney = ifelse(loc_kidney == 1, "Present", "Not Present"))
-df <- df %>% mutate(loc_bladder = ifelse(loc_bladder == 1, "Present", "Not Present"))
-df <- df %>% mutate(loc_thyroid = ifelse(loc_thyroid == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_female_genital = ifelse(loc_female_genital == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_male_genital = ifelse(loc_male_genital == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_renal_urinary = ifelse(loc_renal_urinary == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_cns = ifelse(loc_cns == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_endocrine = ifelse(loc_endocrine == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_lymphomas = ifelse(loc_lymphomas == 1, "Present", "Not Present"))
 df <- df %>% mutate(loc_leukemia = ifelse(loc_leukemia == 1, "Present", "Not Present"))
+df <- df %>% mutate(loc_others = ifelse(loc_others == 1, "Present", "Not Present"))
 
 # Get data into factor format
 df$source <- factor(df$source, levels = c(1, 0), 
@@ -121,10 +125,10 @@ label(df$loc_breast) <- "Breast"
 label(df$loc_female_genital) <- "Female Genital"
 label(df$loc_male_genital) <- "Male Genital"
 label(df$loc_renal_urinary) <- "Renal and Urinary"
+label(df$loc_cns) <- "Central Nervous System"
 label(df$loc_endocrine) <- "Endocrine"
 label(df$loc_lymphomas) <- "Lymphomas"
 label(df$loc_leukemia) <- "Leukemia"
-label(df$loc_other_hematological) <- "Other Hematological"
 label(df$loc_others) <- "Others"
 
 label(df$hypertension_present) <- "Hypertension"
@@ -160,8 +164,8 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic + loc_other_digestive +
                loc_lung_bronchus + loc_other_respiratory + loc_other_mesothelial + 
                loc_melanoma + loc_breast +
-               loc_female_genital + loc_male_genital + loc_renal_urinary +
-               loc_endocrine + loc_lymphomas + loc_leukemia + loc_other_hematological + loc_others
+               loc_female_genital + loc_male_genital + loc_renal_urinary + loc_cns +
+               loc_endocrine + loc_lymphomas + loc_leukemia + loc_others
                | has_cancer,
                data=df,
                render.missing=NULL,
@@ -186,8 +190,8 @@ tbl1 <- table1(~ mortality_in + los_icu_dead + los_icu_survived +
                loc_colon_rectal + loc_liver_bd + loc_pancreatic + loc_other_digestive +
                loc_lung_bronchus + loc_other_respiratory + loc_other_mesothelial + 
                loc_melanoma + loc_breast +
-               loc_female_genital + loc_male_genital + loc_renal_urinary +
-               loc_endocrine + loc_lymphomas + loc_leukemia + loc_other_hematological + loc_others
+               loc_female_genital + loc_male_genital + loc_renal_urinary + loc_cns +
+               loc_endocrine + loc_lymphomas + loc_leukemia + loc_others
                | source,
                data=df,
                render.missing=NULL,
