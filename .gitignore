@@ -10,6 +10,7 @@
 # User-specific files
 .Ruserdata
 /data
+/Publication
 
 # Example code in package build process
 *-Ex.R

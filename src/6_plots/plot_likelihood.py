@@ -55,7 +55,7 @@ def plot_results(filename, model_name):
         # ax.set_yticks([3,6,9,12])
         ax.set_yticklabels(cancer_names)
         ax.set_xlabel(
-            " Non-Cancer more likely | Cancer more likely        ",
+            "            Treatment more likely  |  No treatment more likely       ",
             fontsize=8,
             labelpad=5,
             color="gray",
