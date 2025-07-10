@@ -6,6 +6,10 @@ import seaborn as sb
 from matplotlib import pyplot as plt
 
 matplotlib.use("TKAgg")
+# Say, "the default sans-serif font is Arial"
+matplotlib.rcParams["font.sans-serif"] = "Arial"
+# Then, "ALWAYS use sans-serif fonts"
+matplotlib.rcParams["font.family"] = "sans-serif"
 
 databases = ["all", "eicu", "mimic"]
 
@@ -116,4 +120,4 @@ for db in databases:
         if not os.path.exists("results/plots/"):
             os.makedirs("results/plots/")
 
-        fig.savefig(f"results/plots/tmle_types_{db}_{out}.png", dpi=600)
+        fig.savefig(f"results/plots/tmle_types_{db}_{out}.png", dpi=1200)

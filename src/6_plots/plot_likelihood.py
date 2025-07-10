@@ -4,6 +4,11 @@ from matplotlib import pyplot as plt
 
 matplotlib.use("TKAgg")
 
+# Say, "the default sans-serif font is Arial"
+matplotlib.rcParams["font.sans-serif"] = "Arial"
+# Then, "ALWAYS use sans-serif fonts"
+matplotlib.rcParams["font.family"] = "sans-serif"
+
 
 def plot_results(filename, model_name):
     # load data from csv file into pandas dataframe
@@ -55,7 +60,7 @@ def plot_results(filename, model_name):
         # ax.set_yticks([3,6,9,12])
         ax.set_yticklabels(cancer_names)
         ax.set_xlabel(
-            "            Treatment more likely  |  No treatment more likely       ",
+            "            Treatment less likely  |  No treatment more likely       ",
             fontsize=8,
             labelpad=5,
             color="gray",
@@ -66,8 +71,8 @@ def plot_results(filename, model_name):
     plt.tight_layout()
 
     # Save the figure
-    # fig.savefig(f"results/plots/{filename}.png", dpi=300, bbox_inches="tight")
-    fig.savefig(f"results/plots/{filename}.jpeg", dpi=600, bbox_inches="tight")
+    fig.savefig(f"results/plots/{filename}.png", dpi=1200, bbox_inches="tight")
+    # fig.savefig(f"results/plots/{filename}.jpeg", dpi=600, bbox_inches="tight")
 
 
 filenames = [
